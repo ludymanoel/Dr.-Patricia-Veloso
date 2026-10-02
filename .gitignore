@@ -1,0 +1,36 @@
+_archive/
+doc/
+.opencode_harness/
+.persistent-memory.md
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files and caches
+.cache/
+cache/
+caches/
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Editor/system
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependencies/build outputs if tooling is added later
+node_modules/
+dist/
+build/
+.vercel/
