@@ -4,6 +4,16 @@ Todas as mudanças relevantes deste projeto são documentadas aqui.
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) de forma simplificada.
 
+## [Unreleased]
+
+### Removed
+
+- Pasta `pdf` removida do projeto (arquivos PDF não referenciados; a seção que os usava foi removida). Cópias locais arquivadas fora do versionamento (`_archive/pdf-removed/`, ignorado pelo Git).
+
+### Security / Notes
+
+- Documentos com conteúdo de nome pessoal foram retirados do repositório e mantidos apenas em cópia local não versionada.
+
 ## [1.0.0] — 2026-10-05
 
 Redesign da landing page do Workshop Long Hair FUE: quiz interativo tipo app, carrosséis acessíveis e limpeza de seções/artefatos.
@@ -31,7 +41,7 @@ Redesign da landing page do Workshop Long Hair FUE: quiz interativo tipo app, ca
 - Bloco visível "Resumo das respostas" (o resumo passou a ir apenas na mensagem do WhatsApp).
 - Eyebrows redundantes em seções que não os utilizavam.
 - Bloco "hero facts".
-- Links para os PDFs de `pdf/` (documentos mantidos apenas como legado, não referenciados).
+- Links para os PDFs que então viviam na pasta `pdf` (não referenciados pela página).
 - Seções e assets não usados (movidos/arquivados em `_archive/`, ignorado pelo Git).
 - Regra CSS morta `.quiz-phone::before { content: none; }` e override sem elemento `.quiz-section__intro p`.
 
@@ -43,5 +53,4 @@ Redesign da landing page do Workshop Long Hair FUE: quiz interativo tipo app, ca
 
 ### Security / Notes
 
-- `pdf/` é legado com conteúdo de nome pessoal e **exige checagem de autorização** antes de publicação. Não remover sem decisão do cliente.
 - Nenhum segredo/token em texto no repositório.

@@ -36,7 +36,6 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 ├── styles.css            # Design tokens (CSS variables) e estilos responsivos
 ├── script.js             # Quiz, carrosséis, WhatsApp e acordeão
 ├── img/                  # Imagens usadas pela página
-├── pdf/                  # Legado — NÃO referenciado pela página (ver observações)
 ├── tests/                # Testes E2E (Playwright)
 ├── playwright.config.js  # Configuração do Playwright (servidor estático local)
 ├── package.json          # Apenas devDependency @playwright/test (sem build/start)
@@ -89,6 +88,5 @@ Sem root directory adicional, a Vercel serve `index.html` da raiz.
 - **Acessibilidade**: foco visível, skip-link, `aria-live` no quiz, `aria-roledescription="carousel"` e rótulos nos controles, `aria-pressed` no Pausar/Retomar. As animações e o autoplay respeitam `prefers-reduced-motion`.
 - **Contraste**: paleta centralizada em CSS variables (navy `#1F2A44`, beige `#E8DCC8`, gold `#C6A75E`, texto dourado `#76570f`). Textos sobre fundo navy usam branco/beige para contraste AA.
 - **Navegadores**: requer navegadores modernos (CSS custom properties, `scroll-snap`, `details`, `aspect-ratio`, `dvh`).
-- **`pdf/`**: documentos legados mantidos no repositório, **não referenciados** pela página. Requerem checagem de autorização (conteúdo com nome pessoal) antes de qualquer publicação/veiculação. Não remover sem decisão do cliente.
 - **`_archive/`**: materiais internos e imagens órfãs; ignorado pelo Git.
 - Confirme antes de publicar que nenhum documento interno ou sem liberação está sendo versionado.
