@@ -34,3 +34,8 @@ node_modules/
 dist/
 build/
 .vercel/
+
+# Playwright (testes E2E)
+playwright-report/
+test-results/
+playwright/.cache/
