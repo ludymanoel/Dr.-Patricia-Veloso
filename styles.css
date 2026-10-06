@@ -80,7 +80,7 @@ p { margin: 0; }
 .docente__media img { width: 100%; border-radius: calc(var(--radius) + 8px); aspect-ratio: 4 / 5; object-fit: cover; box-shadow: 0 22px 54px rgba(0, 0, 0, .28); border: 1px solid rgba(232,220,200,.24); }
 .docente__media .docente__portrait { aspect-ratio: auto; height: 100%; object-fit: contain; background: rgba(17, 24, 39, .42); }
 .docente h2 { color: var(--white); }
-.eyebrow--docente { font-size: clamp(1rem, 2vw, 1.22rem); letter-spacing: .11em; color: var(--gold); }
+.eyebrow--docente { font-family: var(--serif); font-weight: 500; font-size: clamp(1rem, 2vw, 1.22rem); letter-spacing: .11em; color: var(--gold); }
 .docente__content > p:not(.eyebrow) { margin-top: 1rem; color: rgba(255, 255, 255, .78); }
 
 .feature-band { background: linear-gradient(135deg, rgba(232,220,200,.68), #fff); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }

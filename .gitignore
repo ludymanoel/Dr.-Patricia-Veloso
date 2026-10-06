@@ -45,3 +45,13 @@ playwright/.cache/
 
 # Imagens-fonte fornecidas pela cliente (nao referenciadas pelo site; assets usados ficam em img/)
 imagens/
+
+# Assets nao utilizados (nao referenciados em HTML/CSS/JS/testes/docs).
+# Removidos do versionamento com `git rm --cached` e mantidos apenas localmente.
+img/Congresso apresentando a implantacao dos  6000 foliculos.jpeg
+img/Logo Long Hair (1).png
+img/Logo long hair fue.png
+img/Palestrante internacional no congresso da ISHRS. Denver 2024.jpeg
+img/antesdepois4.jpg
+img/em cirurgia - aplicacao e extracao dos foliculos.jpeg
+img/foto2.JPG
