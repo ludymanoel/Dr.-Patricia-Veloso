@@ -162,6 +162,107 @@ const PAYMENT_URL = "https://mpago.la/244hsWi";
 const WHATSAPP_PHONE = "553884213318";
 const WHATSAPP_MESSAGE = "Olá, estou interessado em mais informações sobre o Workshop Long Hair Fue \nministrado pela Dra. Patricia Veloso";
 const WHATSAPP_UNAVAILABLE_MESSAGE = "Atendimento por WhatsApp indisponível no momento. O número de contato ainda não foi configurado.";
+const LEAD_FORM_PRIVACY_TEXT =
+  "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop. Esta página não armazena essas informações; após o envio, você será redirecionado para pagamento ou WhatsApp.";
+const LEAD_FORM_PAYMENT_DESCRIPTION = "Após o envio, você será direcionado para a página segura de pagamento.";
+const LEAD_FORM_WHATSAPP_DESCRIPTION =
+  "Após o envio, abriremos o WhatsApp com uma mensagem pronta para solicitar mais informações.";
+
+const LEAD_FORM_FIELDS = [
+  { name: "name", label: "Nome", type: "text", autocomplete: "name" },
+  { name: "email", label: "E-mail", type: "email", autocomplete: "email" },
+  { name: "phone", label: "Telefone", type: "tel", autocomplete: "tel", inputmode: "tel" },
+];
+
+/**
+ * Monta os campos nome/e-mail/telefone do formulário de lead.
+ * O `idPrefix` evita IDs duplicados quando há mais de um formulário na página
+ * (quiz + modal).
+ */
+function buildLeadFormFields(idPrefix) {
+  return LEAD_FORM_FIELDS.map((field) => {
+    const errorId = `${idPrefix}-${field.name}-error`;
+    const inputmode = field.inputmode ? ` inputmode="${field.inputmode}"` : "";
+    return `
+        <div class="lead-form__field">
+          <label for="${idPrefix}-${field.name}">${field.label}</label>
+          <input id="${idPrefix}-${field.name}" name="${field.name}" type="${field.type}"${inputmode} autocomplete="${field.autocomplete}" required aria-invalid="false" aria-describedby="${errorId}" />
+          <p class="lead-form__error" id="${errorId}" data-lead-error="${field.name}"></p>
+        </div>`;
+  }).join("");
+}
+
+/**
+ * Bloco completo do formulário de lead compartilhado entre o quiz e o modal.
+ * `mode` decide o destino: "payment" (Mercado Pago) ou "whatsapp".
+ */
+function buildLeadFormMarkup({ idPrefix, mode, title, description, submitLabel }) {
+  const kicker = mode === "payment" ? "Inscrição" : "Atendimento";
+  return `
+      <p class="quiz-card__kicker">${kicker}</p>
+      <h3 id="${idPrefix}-title">${title}</h3>
+      <form class="lead-form" data-lead-form data-lead-mode="${mode}" novalidate aria-labelledby="${idPrefix}-title">
+        <p class="quiz-card__text">${description}</p>
+        ${buildLeadFormFields(idPrefix)}
+        <p class="lead-form__privacy">${LEAD_FORM_PRIVACY_TEXT}</p>
+        <p class="lead-form__status" data-lead-status role="status" aria-live="polite"></p>
+        <button class="btn lead-form__submit" type="submit">${submitLabel}</button>
+      </form>`;
+}
+
+function validateLeadForm(form) {
+  const fields = {
+    name: {
+      input: form.elements.name,
+      message: "Informe seu nome.",
+      isValid: (value) => value.trim().length >= 2,
+    },
+    email: {
+      input: form.elements.email,
+      message: "Informe um e-mail válido.",
+      isValid: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()),
+    },
+    phone: {
+      input: form.elements.phone,
+      message: "Informe um telefone válido com DDD.",
+      isValid: (value) => value.replace(/\D/g, "").length >= 10,
+    },
+  };
+  let firstInvalid = null;
+
+  Object.entries(fields).forEach(([name, field]) => {
+    const error = form.querySelector(`[data-lead-error="${name}"]`);
+    const valid = field.isValid(field.input.value || "");
+    field.input.setAttribute("aria-invalid", String(!valid));
+    if (error) error.textContent = valid ? "" : field.message;
+    if (!valid && !firstInvalid) firstInvalid = field.input;
+  });
+
+  if (firstInvalid) {
+    firstInvalid.focus();
+    return false;
+  }
+
+  return true;
+}
+
+function handleLeadSubmit(form) {
+  if (!validateLeadForm(form)) return;
+
+  const mode = form.dataset.leadMode === "payment" ? "payment" : "whatsapp";
+  if (mode === "payment") {
+    window.location.href = PAYMENT_URL;
+    return;
+  }
+
+  const status = form.querySelector("[data-lead-status]");
+  if (!WHATSAPP_PHONE) {
+    if (status) status.textContent = WHATSAPP_UNAVAILABLE_MESSAGE;
+    return;
+  }
+
+  window.location.href = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+}
 
 const QUIZ_QUESTIONS = [
   {
@@ -368,86 +469,16 @@ function initQuiz() {
     const isPayment = outcome === "payment";
     setProgress(isPayment ? "Pagamento" : "Atendimento", 100);
     card.innerHTML = `
-      <p class="quiz-card__kicker">${isPayment ? "Inscrição" : "Atendimento"}</p>
-      <h3>${isPayment ? "Complete seus dados para garantir sua vaga" : "Complete seus dados para falar com a equipe"}</h3>
-      <form class="lead-form" data-lead-form novalidate>
-        <p class="quiz-card__text">${isPayment ? "Após o envio, você será direcionado para a página segura de pagamento." : "Após o envio, abriremos o WhatsApp com uma mensagem pronta para solicitar mais informações."}</p>
-        <div class="lead-form__field">
-          <label for="lead-name">Nome</label>
-          <input id="lead-name" name="name" type="text" autocomplete="name" required aria-invalid="false" aria-describedby="lead-name-error" />
-          <p class="lead-form__error" id="lead-name-error" data-lead-error="name"></p>
-        </div>
-        <div class="lead-form__field">
-          <label for="lead-email">E-mail</label>
-          <input id="lead-email" name="email" type="email" autocomplete="email" required aria-invalid="false" aria-describedby="lead-email-error" />
-          <p class="lead-form__error" id="lead-email-error" data-lead-error="email"></p>
-        </div>
-        <div class="lead-form__field">
-          <label for="lead-phone">Telefone</label>
-          <input id="lead-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required aria-invalid="false" aria-describedby="lead-phone-error" />
-          <p class="lead-form__error" id="lead-phone-error" data-lead-error="phone"></p>
-        </div>
-        <p class="lead-form__privacy">Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop. Esta página não armazena essas informações; após o envio, você será redirecionado para pagamento ou WhatsApp.</p>
-        <p class="lead-form__status" data-lead-status role="status" aria-live="polite"></p>
-        <button class="btn lead-form__submit" type="submit">${isPayment ? "Ir para pagamento" : "Conversar com a Equipe"}</button>
-      </form>
+      ${buildLeadFormMarkup({
+        idPrefix: "lead",
+        mode: outcome,
+        title: isPayment ? "Complete seus dados para garantir sua vaga" : "Complete seus dados para falar com a equipe",
+        description: isPayment ? LEAD_FORM_PAYMENT_DESCRIPTION : LEAD_FORM_WHATSAPP_DESCRIPTION,
+        submitLabel: isPayment ? "Ir para pagamento" : "Conversar com a Equipe",
+      })}
       <button class="quiz-restart" type="button" data-quiz-back-result>Voltar ao resultado</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
     `;
-  }
-
-  function validateLeadForm(form) {
-    const fields = {
-      name: {
-        input: form.elements.name,
-        message: "Informe seu nome.",
-        isValid: (value) => value.trim().length >= 2,
-      },
-      email: {
-        input: form.elements.email,
-        message: "Informe um e-mail válido.",
-        isValid: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()),
-      },
-      phone: {
-        input: form.elements.phone,
-        message: "Informe um telefone válido com DDD.",
-        isValid: (value) => value.replace(/\D/g, "").length >= 10,
-      },
-    };
-    let firstInvalid = null;
-
-    Object.entries(fields).forEach(([name, field]) => {
-      const error = form.querySelector(`[data-lead-error="${name}"]`);
-      const valid = field.isValid(field.input.value || "");
-      field.input.setAttribute("aria-invalid", String(!valid));
-      if (error) error.textContent = valid ? "" : field.message;
-      if (!valid && !firstInvalid) firstInvalid = field.input;
-    });
-
-    if (firstInvalid) {
-      firstInvalid.focus();
-      return false;
-    }
-
-    return true;
-  }
-
-  function handleLeadSubmit(form) {
-    if (!validateLeadForm(form)) return;
-
-    const outcome = getQuizOutcome(getCurrentLabelledAnswers());
-    if (outcome === "payment") {
-      window.location.href = PAYMENT_URL;
-      return;
-    }
-
-    const status = form.querySelector("[data-lead-status]");
-    if (!WHATSAPP_PHONE) {
-      if (status) status.textContent = WHATSAPP_UNAVAILABLE_MESSAGE;
-      return;
-    }
-
-    window.location.href = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
   }
 
   function renderPreviousResult() {
@@ -519,14 +550,111 @@ function initQuiz() {
     });
   });
 
-  app.addEventListener("submit", (event) => {
-    const form = event.target.closest("[data-lead-form]");
-    if (!form) return;
+}
 
-    event.preventDefault();
-    handleLeadSubmit(form);
+// Todos os formulários de lead (quiz e modal) usam a mesma validação e submit.
+document.addEventListener("submit", (event) => {
+  const form = event.target.closest("[data-lead-form]");
+  if (!form) return;
+
+  event.preventDefault();
+  handleLeadSubmit(form);
+});
+
+/**
+ * Modal acessível com o formulário de lead para os CTAs "Garanta a sua vaga agora".
+ * O formulário é renderizado sob demanda (ao abrir) e removido ao fechar, evitando
+ * IDs duplicados com o formulário do quiz e resetando a validação.
+ */
+function initLeadModal() {
+  const modal = document.querySelector("[data-lead-modal]");
+  const triggers = document.querySelectorAll("[data-lead-modal-trigger]");
+  if (!modal || triggers.length === 0) return;
+
+  const dialog = modal.querySelector("[data-lead-modal-dialog]");
+  const body = modal.querySelector("[data-lead-modal-body]");
+  const closeButton = modal.querySelector("[data-lead-modal-close]");
+  if (!dialog || !body || !closeButton) return;
+
+  let lastFocused = null;
+
+  function renderForm() {
+    body.innerHTML = buildLeadFormMarkup({
+      idPrefix: "modal-lead",
+      mode: "whatsapp",
+      title: "Complete seus dados para falar com a equipe",
+      description: LEAD_FORM_WHATSAPP_DESCRIPTION,
+      submitLabel: "Falar com a equipe",
+    });
+  }
+
+  function getFocusable() {
+    return Array.from(
+      dialog.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+  }
+
+  function openModal(trigger) {
+    lastFocused = trigger || document.activeElement;
+    renderForm();
+    modal.hidden = false;
+    document.body.classList.add("is-modal-open");
+    // Prioriza o primeiro campo do formulário; o botão de fechar é o fallback.
+    const firstFocusable = dialog.querySelector("input") || dialog.querySelector("button");
+    if (firstFocusable) firstFocusable.focus();
+  }
+
+  function closeModal() {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    body.innerHTML = "";
+    document.body.classList.remove("is-modal-open");
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+
+  triggers.forEach((trigger) => {
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      openModal(trigger);
+    });
+  });
+
+  closeButton.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal || event.target.hasAttribute("data-lead-modal-backdrop")) closeModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (modal.hidden) return;
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeModal();
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+
+    const focusable = getFocusable();
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 }
 
 initQuiz();
 initCarousels();
+initLeadModal();

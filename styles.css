@@ -189,6 +189,17 @@ details p { margin-top: .8rem; color: #4b5565; }
 .footer { padding: 2rem 1rem; text-align: center; color: rgba(255,255,255,.76); background: #111827; font-size: .92rem; }
 .footer p + p { margin-top: .35rem; }
 
+body.is-modal-open { overflow: hidden; }
+.lead-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: clamp(1rem, 4vw, 2rem); }
+.lead-modal[hidden] { display: none; }
+.lead-modal__backdrop { position: absolute; inset: 0; background: rgba(17, 24, 39, .64); backdrop-filter: blur(6px); }
+.lead-modal__dialog { position: relative; z-index: 1; width: min(100%, 34rem); max-height: calc(100dvh - 2rem); overflow-y: auto; padding: clamp(1.35rem, 4vw, 2rem); border-radius: calc(var(--radius) + 8px); background: linear-gradient(180deg, #fff, #fbfaf7); border: 1px solid rgba(232, 220, 200, .86); box-shadow: var(--shadow); }
+.lead-modal__close { position: absolute; top: .55rem; right: .6rem; display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 999px; border: 1px solid rgba(31, 42, 68, .16); background: #fff; color: var(--navy); font-size: 1.4rem; line-height: 1; cursor: pointer; transition: background .18s ease; }
+.lead-modal__close:hover { background: rgba(232, 220, 200, .4); }
+.lead-modal__close:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; }
+.lead-modal__dialog h3 { font-family: var(--serif); font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.06; letter-spacing: -.035em; color: var(--navy); padding-right: 2.4rem; }
+.lead-modal__dialog .lead-form__submit { cursor: pointer; }
+
 @media (min-width: 720px) {
   .nav { display: flex; }
   .hero__actions { flex-direction: row; align-items: center; }
@@ -219,7 +230,7 @@ details p { margin-top: .8rem; color: #4b5565; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .btn, .quiz-card, .quiz-option, .quiz-progress__track span, .carousel__button { transition: none; }
+  .btn, .quiz-card, .quiz-option, .quiz-progress__track span, .carousel__button, .lead-modal__close { transition: none; }
   .carousel__viewport { scroll-behavior: auto; }
   .quiz-loading span { animation: none; }
 }

@@ -29,7 +29,7 @@
         <a href="#docente">Docente</a>
         <a href="#faq">FAQ</a>
       </nav>
-      <a class="btn btn--small header-cta" href="#inscricao">Garanta a sua vaga agora</a>
+      <a class="btn btn--small header-cta" href="#inscricao" data-lead-modal-trigger>Garanta a sua vaga agora</a>
     </header>
 
     <main id="conteudo">
@@ -39,7 +39,7 @@
           <h1>Entenda o raciocínio técnico por trás do transplante capilar com fios longos — da seleção do paciente ao planejamento de grandes sessões.</h1>
           <p class="hero__lead">Um encontro presencial para médicos que querem compreender o que realmente muda quando o cabelo deixa de ser raspado e passa a funcionar como referência durante a cirurgia.</p>
           <div class="hero__actions">
-            <a class="btn" href="#inscricao">Garanta a sua vaga agora</a>
+            <a class="btn" href="#inscricao" data-lead-modal-trigger>Garanta a sua vaga agora</a>
             <a class="btn btn--ghost" href="#programa">Ver programa</a>
           </div>
         </div>
@@ -199,7 +199,7 @@
           <div><strong>Formato</strong><span>Presencial</span></div>
           <div><strong>Público</strong><span>Exclusivo para médicos</span></div>
         </div>
-        <div class="centered-action"><a class="btn" href="#inscricao">Garanta a sua vaga agora</a></div>
+        <div class="centered-action"><a class="btn" href="#inscricao" data-lead-modal-trigger>Garanta a sua vaga agora</a></div>
       </section>
 
       <section class="section records" id="registros">
@@ -247,7 +247,7 @@
           </figure>
           <div class="final-cta__copy">
             <h2>O paciente procura discrição. O cirurgião precisa entregar todas as decisões por trás dela.</h2>
-            <a class="btn btn--light" href="#inscricao">Garanta a sua vaga agora</a>
+            <a class="btn btn--light" href="#inscricao" data-lead-modal-trigger>Garanta a sua vaga agora</a>
           </div>
         </div>
       </section>
@@ -257,6 +257,22 @@
       <p>Dra. Patricia Veloso — Cirurgiã Plástica | CRM-MG 50766 | RQE 34013</p>
       <p>Workshop Long Hair FUE | Rio de Janeiro | 13 de novembro de 2026</p>
     </footer>
+
+    <div class="lead-modal" data-lead-modal hidden>
+      <div class="lead-modal__backdrop" data-lead-modal-backdrop></div>
+      <div
+        class="lead-modal__dialog"
+        data-lead-modal-dialog
+        role="dialog"
+        aria-modal="true"
+        aria-label="Formulário para falar com a equipe"
+      >
+        <button class="lead-modal__close" type="button" data-lead-modal-close aria-label="Fechar formulário">
+          <span aria-hidden="true">×</span>
+        </button>
+        <div class="lead-modal__body" data-lead-modal-body></div>
+      </div>
+    </div>
 
     <script src="script.js" defer></script>
   </body>
