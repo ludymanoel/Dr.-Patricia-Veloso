@@ -39,3 +39,9 @@ build/
 playwright-report/
 test-results/
 playwright/.cache/
+
+# Windows metadata
+*:Zone.Identifier
+
+# Imagens-fonte fornecidas pela cliente (nao referenciadas pelo site; assets usados ficam em img/)
+imagens/
