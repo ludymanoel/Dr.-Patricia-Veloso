@@ -76,9 +76,9 @@ p { margin: 0; }
 .docente { background: linear-gradient(135deg, var(--navy), #111827); color: var(--white); }
 .docente > div { max-width: 76rem; margin: auto; }
 .docente__grid { display: grid; gap: 2rem; align-items: center; }
-.docente__media { margin: 0; }
+.docente__media { margin: 0; aspect-ratio: 2 / 3; background: rgba(17, 24, 39, .42); border-radius: calc(var(--radius) + 8px); }
 .docente__media img { width: 100%; border-radius: calc(var(--radius) + 8px); aspect-ratio: 4 / 5; object-fit: cover; box-shadow: 0 22px 54px rgba(0, 0, 0, .28); border: 1px solid rgba(232,220,200,.24); }
-.docente__media .docente__portrait { aspect-ratio: auto; object-fit: contain; background: rgba(17, 24, 39, .42); }
+.docente__media .docente__portrait { aspect-ratio: auto; height: 100%; object-fit: contain; background: rgba(17, 24, 39, .42); }
 .docente h2 { color: var(--white); }
 .eyebrow--docente { font-size: clamp(1rem, 2vw, 1.22rem); letter-spacing: .11em; color: var(--gold); }
 .docente__content > p:not(.eyebrow) { margin-top: 1rem; color: rgba(255, 255, 255, .78); }
@@ -181,9 +181,9 @@ details p { margin-top: .8rem; color: #4b5565; }
 
 .final-cta { text-align: center; background: linear-gradient(135deg, var(--navy), #111827); color: var(--white); }
 .final-cta__content { display: grid; gap: 2rem; align-items: center; max-width: 76rem; margin: auto; }
-.final-cta__media { margin: 0 auto; width: min(100%, 23rem); }
+.final-cta__media { margin: 0 auto; width: min(100%, 23rem); aspect-ratio: 2 / 3; background: rgba(17, 24, 39, .42); border-radius: calc(var(--radius) + 8px); }
 .final-cta__media img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; object-position: center; border-radius: calc(var(--radius) + 8px); border: 1px solid rgba(232,220,200,.28); box-shadow: 0 22px 54px rgba(0, 0, 0, .3); }
-.final-cta__media .final-cta__portrait { aspect-ratio: auto; object-fit: contain; background: rgba(17, 24, 39, .42); }
+.final-cta__media .final-cta__portrait { aspect-ratio: auto; height: 100%; object-fit: contain; background: rgba(17, 24, 39, .42); }
 .final-cta h2 { color: var(--white); max-width: 56rem; margin: auto; }
 .final-cta .btn--light { margin-top: 1.75rem; }
 .footer { padding: 2rem 1rem; text-align: center; color: rgba(255,255,255,.76); background: #111827; font-size: .92rem; }

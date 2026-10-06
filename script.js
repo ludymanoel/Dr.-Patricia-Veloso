@@ -197,9 +197,11 @@ function buildLeadFormFields(idPrefix) {
  * `mode` decide o destino: "payment" (Mercado Pago) ou "whatsapp".
  */
 function buildLeadFormMarkup({ idPrefix, mode, title, description, submitLabel }) {
-  const kicker = mode === "payment" ? "Inscrição" : "Atendimento";
+  // O kicker "Atendimento" foi removido do fluxo de WhatsApp; mantém-se apenas
+  // o kicker de "Inscrição" no fluxo de pagamento.
+  const kicker = mode === "payment" ? '<p class="quiz-card__kicker">Inscrição</p>' : "";
   return `
-      <p class="quiz-card__kicker">${kicker}</p>
+      ${kicker}
       <h3 id="${idPrefix}-title">${title}</h3>
       <form class="lead-form" data-lead-form data-lead-mode="${mode}" novalidate aria-labelledby="${idPrefix}-title">
         <p class="quiz-card__text">${description}</p>
