@@ -6,7 +6,6 @@ const { test, expect } = require("@playwright/test");
 test.use({ viewport: { width: 390, height: 844 } });
 
 const CAROUSELS = [
-  { name: "programa", label: "Tópicos do programa" },
   { name: "registros", label: "Registros visuais" },
 ];
 
@@ -80,4 +79,15 @@ test("prefers-reduced-motion desativa o autoplay em ambos os carrosséis", async
     await expect(toggle).toHaveAttribute("aria-pressed", "true");
     await expect(toggle).toBeDisabled();
   }
+});
+
+test("programa usa layout estático acessível em vez de carrossel", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.locator("#programa [data-carousel]")).toHaveCount(0);
+  await expect(page.locator("#programa .program-list")).toHaveCount(0);
+  await expect(page.locator("#programa .program-visual")).toHaveCount(0);
+  await expect(page.locator('#programa img[src="img/conteúdo (imagem 1).png"]')).toBeVisible();
+  await expect(page.locator('#programa img[src="img/conteúdo (imagem 1).png"]')).toHaveAttribute("alt", /Conteúdo programático/);
+  await expect(page.locator('#programa [aria-label="Transcrição dos tópicos do programa"] p')).toHaveCount(12);
 });

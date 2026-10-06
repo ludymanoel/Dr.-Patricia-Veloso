@@ -1,12 +1,3 @@
-const WHATSAPP_URL =
-  "https://wa.me/553884213318?text=Ol%C3%A1%2C%20tenho%20interesse%20no%20Workshop%20Long%20Hair%20FUE%20da%20Dra.%20Patricia%20Veloso%20em%2013%20de%20novembro%20de%202026%20no%20Rio%20de%20Janeiro.%20Gostaria%20de%20receber%20informa%C3%A7%C3%B5es%20sobre%20inscri%C3%A7%C3%A3o.";
-
-document.querySelectorAll("[data-whatsapp]").forEach((link) => {
-  link.setAttribute("href", WHATSAPP_URL);
-  link.setAttribute("target", "_blank");
-  link.setAttribute("rel", "noopener");
-});
-
 document.querySelectorAll("details").forEach((detail) => {
   detail.addEventListener("toggle", () => {
     if (!detail.open) return;
@@ -165,15 +156,19 @@ function initCarousels() {
   });
 }
 
-const QUIZ_WHATSAPP_MESSAGE =
-  "Olá, tenho interesse no Workshop Long Hair FUE da Dra. Patricia Veloso. Respondi ao quiz da página e gostaria de receber informações sobre inscrição, programação e disponibilidade de vagas.";
+const SIGNUP_TARGET = "#inscricao";
+const SIGNUP_LABEL = "Garanta a sua vaga agora";
+const PAYMENT_URL = "https://mpago.la/244hsWi";
+const WHATSAPP_PHONE = "553884213318";
+const WHATSAPP_MESSAGE = "Olá, estou interessado em mais informações sobre o Workshop Long Hair Fue \nministrado pela Dra. Patricia Veloso";
+const WHATSAPP_UNAVAILABLE_MESSAGE = "Atendimento por WhatsApp indisponível no momento. O número de contato ainda não foi configurado.";
 
 const QUIZ_QUESTIONS = [
   {
     id: "perfil",
     kicker: "Pergunta 1 de 4",
     question: "Você é médico(a)?",
-    text: "O workshop presencial é exclusivo para médicos. Esta etapa ajuda a indicar o melhor canal de conversa.",
+    text: "O workshop presencial é exclusivo para médicos. Esta etapa ajuda a indicar a melhor orientação.",
     options: [
       { label: "Sim, sou médico(a)", value: "Médico(a)" },
       { label: "Ainda estou em formação médica", value: "Em formação médica" },
@@ -209,23 +204,14 @@ const QUIZ_QUESTIONS = [
     id: "participacao",
     kicker: "Pergunta 4 de 4",
     question: "Você pretende participar de um workshop presencial no Rio de Janeiro em 13 de novembro de 2026?",
-    text: "A equipe pode orientar sobre inscrição, programação e disponibilidade de vagas.",
+    text: "A equipe pode orientar sobre inscrição, programação e disponibilidade.",
     options: [
-      { label: "Sim, quero receber informações", value: "Quer informações" },
+      { label: "Sim, quero avançar para a inscrição", value: "Quer avançar" },
       { label: "Talvez, quero valores e detalhes", value: "Quer valores e detalhes" },
       { label: "Ainda estou avaliando", value: "Avaliando participação" },
     ],
   },
 ];
-
-function buildQuizWhatsappUrl(answers, message = QUIZ_WHATSAPP_MESSAGE) {
-  const summary = Object.entries(answers)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(" | ");
-  const text = summary ? `${message}\n\nResumo do quiz: ${summary}` : message;
-
-  return `https://wa.me/553884213318?text=${encodeURIComponent(text)}`;
-}
 
 function buildQuizResultCopy(answers) {
   const relation = answers["Relação com transplante capilar"] || "";
@@ -269,16 +255,21 @@ function buildQuizResultCopy(answers) {
     interestParagraphs[interest] ||
     "Cada etapa do conteúdo reforça a leitura de indicação, planejamento, operação e limites com responsabilidade educacional.";
 
-  const invitation = intention === "Quer informações"
-    ? "O próximo passo é direto: fale com a equipe para receber informações de inscrição, programação e disponibilidade."
+  const invitation = intention === "Quer avançar"
+    ? "O próximo passo é direto: avance para a seção de inscrição e confira as orientações oficiais do workshop."
     : intention === "Quer valores e detalhes"
-      ? "Se você ainda está comparando valores e detalhes, a equipe pode orientar sem pressão e esclarecer o que faz sentido para o seu momento."
-      : "Se ainda está avaliando, vale enviar suas dúvidas para a equipe e entender o formato antes de decidir.";
+      ? "Se você ainda está comparando valores e detalhes, avance para conferir as orientações oficiais antes de decidir."
+      : "Se ainda está avaliando, use a seção de inscrição para entender o formato antes de decidir.";
 
   return {
     title: headlines[interest] || "Seu resultado indica um bom ponto de partida para conversar com a equipe.",
     paragraphs: [primary, interestCopy, invitation],
   };
+}
+
+function getQuizOutcome(answers) {
+  const isPositive = answers.Perfil === "Médico(a)" && answers["Intenção de participação"] === "Quer avançar";
+  return isPositive ? "payment" : "whatsapp";
 }
 
 function initQuiz() {
@@ -302,13 +293,11 @@ function initQuiz() {
     Object.keys(answers).forEach((key) => delete answers[key]);
     setProgress("Início", 0);
     card.innerHTML = `
-      <p class="quiz-card__kicker">Workshop Long Hair FUE</p>
-      <h3>Descubra se este workshop faz sentido para o seu momento profissional</h3>
-      <p class="quiz-card__text">Responda algumas perguntas objetivas e receba uma mensagem pronta para falar com a equipe pelo WhatsApp.</p>
+      <div class="quiz-card__kicker" data-quiz-kicker>Workshop Long Hair FUE</div>
+      <p class="quiz-card__text">Em menos de 1 minuto, responda perguntas objetivas sobre sua experiência e seus objetivos na técnica Long Hair FUE. O quiz ajuda você a entender se este workshop pode acelerar sua evolução — seja para começar com mais segurança ou para refinar planejamento, implantação e condução de casos avançados.</p>
       <div class="quiz-options">
-        <button class="quiz-option" type="button" data-quiz-start>Começar</button>
+        <button class="quiz-option" type="button" data-quiz-start>Responder o quiz</button>
       </div>
-      <p class="quiz-card__note">Exclusivo para médicos. Este quiz não solicita dados pessoais nem substitui validação da equipe.</p>
     `;
   }
 
@@ -334,17 +323,13 @@ function initQuiz() {
 
   function renderNotDoctor() {
     setProgress("Orientação", 100);
-    const url = buildQuizWhatsappUrl(
-      { Perfil: answers["Perfil"] || "Não médico(a)" },
-      "Olá, encontrei a página do Workshop Long Hair FUE da Dra. Patricia Veloso e gostaria de falar com a equipe pelo WhatsApp.",
-    );
     card.innerHTML = `
       <p class="quiz-card__kicker">Orientação institucional</p>
       <h3>Obrigado pelo interesse no Workshop Long Hair FUE.</h3>
-      <p class="quiz-card__text">Este encontro presencial é exclusivo para médicos. Se quiser falar com a equipe sobre informações institucionais, use o botão abaixo.</p>
-      <a class="btn quiz-whatsapp" href="${url}" target="_blank" rel="noopener">Falar com a equipe no WhatsApp</a>
+      <p class="quiz-card__text">Este encontro presencial é exclusivo para médicos. A equipe pode orientar sobre informações gerais e próximos passos.</p>
+      <button class="btn quiz-cta" type="button" data-quiz-open-form>Falar com a equipe</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
-      <p class="quiz-card__note">Não há diagnóstico, promessa médica ou coleta de dados pessoais neste fluxo.</p>
+      <p class="quiz-card__note">Não há diagnóstico ou promessa médica neste fluxo.</p>
     `;
   }
 
@@ -356,7 +341,6 @@ function initQuiz() {
       "Interesse principal": answers["Interesse principal"],
       "Intenção de participação": answers["Intenção de participação"],
     };
-    const url = buildQuizWhatsappUrl(labelledAnswers);
     const resultCopy = buildQuizResultCopy(labelledAnswers);
     card.innerHTML = `
       <p class="quiz-card__kicker">Próximo passo</p>
@@ -364,10 +348,114 @@ function initQuiz() {
       <div class="quiz-result" aria-label="Orientação personalizada a partir das respostas">
         ${resultCopy.paragraphs.map((paragraph) => `<p>${paragraph}</p>`).join("")}
       </div>
-      <a class="btn quiz-whatsapp" href="${url}" target="_blank" rel="noopener">Enviar mensagem pelo WhatsApp</a>
+      <button class="btn quiz-cta" type="button" data-quiz-open-form>${getQuizOutcome(labelledAnswers) === "payment" ? "Garantir minha vaga agora" : "Falar com a equipe"}</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
       <p class="quiz-card__note">A inscrição será conduzida pela equipe oficial. O workshop é educacional e exclusivo para médicos.</p>
     `;
+  }
+
+  function getCurrentLabelledAnswers() {
+    return {
+      Perfil: answers["Perfil"],
+      "Relação com transplante capilar": answers["Relação com transplante capilar"],
+      "Interesse principal": answers["Interesse principal"],
+      "Intenção de participação": answers["Intenção de participação"],
+    };
+  }
+
+  function renderLeadForm() {
+    const outcome = getQuizOutcome(getCurrentLabelledAnswers());
+    const isPayment = outcome === "payment";
+    setProgress(isPayment ? "Pagamento" : "Atendimento", 100);
+    card.innerHTML = `
+      <p class="quiz-card__kicker">${isPayment ? "Inscrição" : "Atendimento"}</p>
+      <h3>${isPayment ? "Complete seus dados para garantir sua vaga" : "Complete seus dados para falar com a equipe"}</h3>
+      <form class="lead-form" data-lead-form novalidate>
+        <p class="quiz-card__text">${isPayment ? "Após o envio, você será direcionado para a página segura de pagamento." : "Após o envio, abriremos o WhatsApp com uma mensagem pronta para solicitar mais informações."}</p>
+        <div class="lead-form__field">
+          <label for="lead-name">Nome</label>
+          <input id="lead-name" name="name" type="text" autocomplete="name" required aria-invalid="false" aria-describedby="lead-name-error" />
+          <p class="lead-form__error" id="lead-name-error" data-lead-error="name"></p>
+        </div>
+        <div class="lead-form__field">
+          <label for="lead-email">E-mail</label>
+          <input id="lead-email" name="email" type="email" autocomplete="email" required aria-invalid="false" aria-describedby="lead-email-error" />
+          <p class="lead-form__error" id="lead-email-error" data-lead-error="email"></p>
+        </div>
+        <div class="lead-form__field">
+          <label for="lead-phone">Telefone</label>
+          <input id="lead-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required aria-invalid="false" aria-describedby="lead-phone-error" />
+          <p class="lead-form__error" id="lead-phone-error" data-lead-error="phone"></p>
+        </div>
+        <p class="lead-form__privacy">Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop. Esta página não armazena essas informações; após o envio, você será redirecionado para pagamento ou WhatsApp.</p>
+        <p class="lead-form__status" data-lead-status role="status" aria-live="polite"></p>
+        <button class="btn lead-form__submit" type="submit">${isPayment ? "Ir para pagamento" : "Conversar com a Equipe"}</button>
+      </form>
+      <button class="quiz-restart" type="button" data-quiz-back-result>Voltar ao resultado</button>
+      <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
+    `;
+  }
+
+  function validateLeadForm(form) {
+    const fields = {
+      name: {
+        input: form.elements.name,
+        message: "Informe seu nome.",
+        isValid: (value) => value.trim().length >= 2,
+      },
+      email: {
+        input: form.elements.email,
+        message: "Informe um e-mail válido.",
+        isValid: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()),
+      },
+      phone: {
+        input: form.elements.phone,
+        message: "Informe um telefone válido com DDD.",
+        isValid: (value) => value.replace(/\D/g, "").length >= 10,
+      },
+    };
+    let firstInvalid = null;
+
+    Object.entries(fields).forEach(([name, field]) => {
+      const error = form.querySelector(`[data-lead-error="${name}"]`);
+      const valid = field.isValid(field.input.value || "");
+      field.input.setAttribute("aria-invalid", String(!valid));
+      if (error) error.textContent = valid ? "" : field.message;
+      if (!valid && !firstInvalid) firstInvalid = field.input;
+    });
+
+    if (firstInvalid) {
+      firstInvalid.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  function handleLeadSubmit(form) {
+    if (!validateLeadForm(form)) return;
+
+    const outcome = getQuizOutcome(getCurrentLabelledAnswers());
+    if (outcome === "payment") {
+      window.location.href = PAYMENT_URL;
+      return;
+    }
+
+    const status = form.querySelector("[data-lead-status]");
+    if (!WHATSAPP_PHONE) {
+      if (status) status.textContent = WHATSAPP_UNAVAILABLE_MESSAGE;
+      return;
+    }
+
+    window.location.href = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  }
+
+  function renderPreviousResult() {
+    if (answers.Perfil === "Não médico(a)") {
+      renderNotDoctor();
+      return;
+    }
+    renderFinal();
   }
 
   function showLoadingThen(callback) {
@@ -385,6 +473,8 @@ function initQuiz() {
     const startButton = event.target.closest("[data-quiz-start]");
     const answerButton = event.target.closest("[data-quiz-answer]");
     const restartButton = event.target.closest("[data-quiz-restart]");
+    const openFormButton = event.target.closest("[data-quiz-open-form]");
+    const backResultButton = event.target.closest("[data-quiz-back-result]");
 
     if (startButton) {
       showLoadingThen(() => renderQuestion(0));
@@ -393,6 +483,16 @@ function initQuiz() {
 
     if (restartButton) {
       showLoadingThen(renderIntro);
+      return;
+    }
+
+    if (openFormButton) {
+      showLoadingThen(renderLeadForm);
+      return;
+    }
+
+    if (backResultButton) {
+      showLoadingThen(renderPreviousResult);
       return;
     }
 
@@ -417,6 +517,14 @@ function initQuiz() {
 
       renderFinal();
     });
+  });
+
+  app.addEventListener("submit", (event) => {
+    const form = event.target.closest("[data-lead-form]");
+    if (!form) return;
+
+    event.preventDefault();
+    handleLeadSubmit(form);
   });
 }
 
