@@ -149,13 +149,6 @@ p { margin: 0; }
 .carousel { display: grid; gap: 1rem; }
 .carousel__viewport { overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: thin; scrollbar-color: var(--gold) rgba(31,42,68,.1); padding: .25rem .25rem 1rem; margin-inline: -.25rem; }
 .carousel__viewport:focus-visible { outline: 3px solid var(--navy); outline-offset: 4px; border-radius: 14px; }
-.carousel__controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .7rem; }
-.carousel__button { min-height: 2.8rem; padding: .65rem 1rem; border-radius: 999px; border: 1px solid rgba(31,42,68,.22); background: #fff; color: var(--navy); font: inherit; font-weight: 850; cursor: pointer; box-shadow: 0 8px 20px rgba(31,42,68,.06); transition: transform .18s ease, border-color .18s ease; }
-.carousel__button--toggle { border-color: rgba(198,167,94,.58); background: rgba(232,220,200,.34); }
-.carousel__button--toggle[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--white); }
-.carousel__button:hover { transform: translateY(-2px); border-color: rgba(198,167,94,.78); }
-.carousel__button:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; }
-.carousel__button:disabled { cursor: not-allowed; opacity: .45; transform: none; }
 .note-card { background: var(--navy) !important; color: #fff; }
 .note-card h3 { color: #fff; }
 .note-card p { color: rgba(255,255,255,.82) !important; }
@@ -205,6 +198,8 @@ body.is-modal-open { overflow: hidden; }
 .lead-modal__close:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; }
 .lead-modal__dialog h3 { font-family: var(--serif); font-size: clamp(1.5rem, 5vw, 2.1rem); line-height: 1.06; letter-spacing: -.035em; color: var(--navy); padding-right: 2.4rem; }
 .lead-modal__dialog .lead-form__submit { cursor: pointer; }
+.lead-modal__message { margin-top: 1rem; color: #4b5565; }
+.lead-modal__actions { margin-top: 1.35rem; }
 
 @media (min-width: 720px) {
   .nav { display: flex; }
@@ -236,7 +231,7 @@ body.is-modal-open { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .btn, .quiz-card, .quiz-option, .quiz-progress__track span, .carousel__button, .lead-modal__close { transition: none; }
+  .btn, .quiz-card, .quiz-option, .quiz-progress__track span, .lead-modal__close { transition: none; }
   .carousel__viewport { scroll-behavior: auto; }
   .quiz-loading span { animation: none; }
 }

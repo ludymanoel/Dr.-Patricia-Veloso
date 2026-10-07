@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 
 const PAYMENT_URL = "https://mpago.la/244hsWi";
-const LEAD_SUCCESS_MESSAGE = "Recebemos seus dados! A equipe entrará em contato em breve.";
+const THANK_YOU_MESSAGE = "As informações foram encaminhadas para a equipe do evento e em breve retornaremos o contato.";
 const FORBIDDEN_COPY = new RegExp(["Solicitar informa" + "ções", "1" + "00", "capaci" + "dade"].join("|"), "i");
 
 // A página não deve abrir o WhatsApp em nenhum CTA ou fluxo.
@@ -124,11 +124,14 @@ test.describe("Quiz interativo", () => {
     await expect(page.locator("[data-lead-form]")).toContainText("Após o envio, a nossa equipe entrará em contato com você para dar continuidade ao seu interesse no workshop.");
 
     await fillLeadForm(page);
-    await page.getByRole("button", { name: "Falar com a equipe" }).click();
+    await page.getByRole("button", { name: "Enviar Informações" }).click();
 
-    const status = page.locator("[data-lead-status]");
-    await expect(status).toHaveText(LEAD_SUCCESS_MESSAGE);
-    await expect(status).toHaveClass(/is-success/);
+    // O envio bem-sucedido abre o popup de agradecimento em vez do status inline.
+    const thankYou = page.locator("[data-thank-you-dialog]");
+    await expect(thankYou).toBeVisible();
+    await expect(page.locator("#thank-you-title")).toHaveText("Obrigado!");
+    await expect(thankYou).toContainText(THANK_YOU_MESSAGE);
+    await expect(page.locator("[data-lead-status]")).toHaveText("");
     await expectNoWhatsAppLinks(page);
   });
 
@@ -161,7 +164,7 @@ test.describe("Quiz interativo", () => {
 
     const cta = page.locator(".quiz-cta");
     await expect(cta).toBeVisible();
-    await expect(cta).toHaveText("Falar com a equipe");
+    await expect(cta).toHaveText("Enviar Informações");
     await cta.click();
     await expect(page.locator("[data-lead-form]")).toBeVisible();
     await expect(page.locator("[data-quiz-card] h3")).toHaveText("Complete seus dados para falar com a equipe");

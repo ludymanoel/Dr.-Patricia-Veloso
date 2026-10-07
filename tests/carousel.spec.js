@@ -2,83 +2,55 @@
 const { test, expect } = require("@playwright/test");
 
 // Viewport estreito garante que os carrosséis tenham conteúdo rolável
-// (hasScrollableContent) e que o botão de autoplay fique habilitado.
+// (hasScrollableContent) e que o autoplay automático seja iniciado.
 test.use({ viewport: { width: 390, height: 844 } });
 
-const CAROUSELS = [
-  { name: "registros", label: "Registros visuais" },
-];
+const CAROUSELS = ["Registros visuais", "Antes e depois Long Hair FUE"];
 
 function carousel(page, label) {
   return page.locator(`[data-carousel][aria-label="${label}"]`);
 }
 
-async function pauseAutoplayIfNeeded(page, root) {
-  const toggle = root.locator("[data-carousel-toggle]");
-  if ((await toggle.isEnabled()) && (await toggle.getAttribute("aria-pressed")) === "false") {
-    await toggle.click();
-    await expect(toggle).toHaveAttribute("aria-pressed", "true");
-  }
-}
-
-for (const item of CAROUSELS) {
-  test.describe(`Carrossel — ${item.name}`, () => {
-    test("botão Pausar/Retomar alterna aria-pressed e o texto", async ({ page }) => {
+test.describe("Carrossel — registros", () => {
+  for (const label of CAROUSELS) {
+    test(`não exibe mais controles de Pausar/Anterior/Próximo — ${label}`, async ({ page }) => {
       await page.goto("/");
-      const root = carousel(page, item.label);
-      const toggle = root.locator("[data-carousel-toggle]");
+      const root = carousel(page, label);
 
-      await expect(toggle).toBeEnabled();
-      await expect(toggle).toHaveText("Pausar");
-      await expect(toggle).toHaveAttribute("aria-pressed", "false");
-
-      await toggle.click();
-      await expect(toggle).toHaveText("Retomar");
-      await expect(toggle).toHaveAttribute("aria-pressed", "true");
-
-      await toggle.click();
-      await expect(toggle).toHaveText("Pausar");
-      await expect(toggle).toHaveAttribute("aria-pressed", "false");
+      await expect(root).toBeVisible();
+      await expect(root.locator(".carousel__controls")).toHaveCount(0);
+      await expect(root.locator("[data-carousel-toggle]")).toHaveCount(0);
+      await expect(root.locator("[data-carousel-prev]")).toHaveCount(0);
+      await expect(root.locator("[data-carousel-next]")).toHaveCount(0);
     });
 
-    test("Próximo e Anterior alteram o scrollLeft do viewport", async ({ page }) => {
+    test(`avança o scrollLeft automaticamente (autoplay) sem controles — ${label}`, async ({ page }) => {
       await page.goto("/");
-      const root = carousel(page, item.label);
-      const viewport = root.locator("[data-carousel-viewport]");
-      const next = root.locator("[data-carousel-next]");
-      const prev = root.locator("[data-carousel-prev]");
-
-      // Pausa o autoplay para tornar a asserção determinística
-      await pauseAutoplayIfNeeded(page, root);
+      const viewport = carousel(page, label).locator("[data-carousel-viewport]");
 
       await expect
         .poll(() => viewport.evaluate((el) => el.scrollWidth > el.clientWidth + 8))
         .toBe(true);
 
       const initial = await viewport.evaluate((el) => el.scrollLeft);
-      expect(initial).toBeLessThanOrEqual(4);
-      await expect(next).toBeEnabled();
-
-      await next.click();
-      await expect.poll(() => viewport.evaluate((el) => el.scrollLeft)).toBeGreaterThan(initial);
-      await expect(prev).toBeEnabled();
-
-      await prev.click();
-      await expect.poll(() => viewport.evaluate((el) => el.scrollLeft)).toBeLessThanOrEqual(initial + 4);
+      await expect
+        .poll(() => viewport.evaluate((el) => el.scrollLeft), { timeout: 12000 })
+        .toBeGreaterThan(initial + 4);
     });
-  });
-}
+  }
+});
 
-test("prefers-reduced-motion desativa o autoplay em ambos os carrosséis", async ({ page }) => {
+test("prefers-reduced-motion mantém o autoplay parado (sem controles)", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
 
-  for (const item of CAROUSELS) {
-    const toggle = carousel(page, item.label).locator("[data-carousel-toggle]");
-    await expect(toggle).toHaveText("Autoplay desativado");
-    await expect(toggle).toHaveAttribute("aria-pressed", "true");
-    await expect(toggle).toBeDisabled();
-  }
+  const viewport = carousel(page, CAROUSELS[0]).locator("[data-carousel-viewport]");
+  await expect
+    .poll(() => viewport.evaluate((el) => el.scrollWidth > el.clientWidth + 8))
+    .toBe(true);
+
+  await page.waitForTimeout(5000);
+  expect(await viewport.evaluate((el) => el.scrollLeft)).toBeLessThanOrEqual(4);
 });
 
 test("programa usa layout estático acessível em vez de carrossel", async ({ page }) => {

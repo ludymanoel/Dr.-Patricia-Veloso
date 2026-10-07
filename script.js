@@ -13,71 +13,18 @@ function initCarousels() {
 
   document.querySelectorAll("[data-carousel]").forEach((carousel) => {
     const viewport = carousel.querySelector("[data-carousel-viewport]");
-    const previousButton = carousel.querySelector("[data-carousel-prev]");
-    const nextButton = carousel.querySelector("[data-carousel-next]");
-    const autoplayButton = carousel.querySelector("[data-carousel-toggle]");
     let autoplayTimer;
-    let userPaused = false;
     let hoverPaused = false;
     let focusPaused = false;
 
-    if (!viewport || !previousButton || !nextButton) return;
-
-    function getCarouselName() {
-      return carousel.getAttribute("aria-label") || "carrossel";
-    }
+    if (!viewport) return;
 
     function hasScrollableContent() {
       return viewport.scrollWidth > viewport.clientWidth + 8;
     }
 
     function isAutoplayPaused() {
-      return userPaused || hoverPaused || focusPaused || prefersReducedMotion.matches || !hasScrollableContent();
-    }
-
-    function updateAutoplayButton() {
-      if (!autoplayButton) return;
-
-      const carouselName = getCarouselName().toLowerCase();
-
-      if (prefersReducedMotion.matches) {
-        autoplayButton.textContent = "Autoplay desativado";
-        autoplayButton.setAttribute("aria-label", `Autoplay desativado por preferência de movimento reduzido em ${carouselName}`);
-        autoplayButton.setAttribute("aria-pressed", "true");
-        autoplayButton.disabled = true;
-        return;
-      }
-
-      if (!hasScrollableContent()) {
-        autoplayButton.textContent = "Autoplay indisponível";
-        autoplayButton.setAttribute("aria-label", `Autoplay indisponível em ${carouselName}`);
-        autoplayButton.setAttribute("aria-pressed", "true");
-        autoplayButton.disabled = true;
-        return;
-      }
-
-      autoplayButton.disabled = false;
-      autoplayButton.textContent = userPaused ? "Retomar" : "Pausar";
-      autoplayButton.setAttribute("aria-pressed", String(userPaused));
-      autoplayButton.setAttribute(
-        "aria-label",
-        `${userPaused ? "Retomar" : "Pausar"} autoplay de ${carouselName}`,
-      );
-    }
-
-    function updateButtons() {
-      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
-      const currentScroll = viewport.scrollLeft;
-
-      previousButton.disabled = currentScroll <= 4;
-      nextButton.disabled = currentScroll >= maxScroll - 4;
-    }
-
-    function scrollCarousel(direction) {
-      viewport.scrollBy({
-        left: direction * viewport.clientWidth * 0.9,
-        behavior: prefersReducedMotion.matches ? "auto" : "smooth",
-      });
+      return hoverPaused || focusPaused || prefersReducedMotion.matches || !hasScrollableContent();
     }
 
     function getAutoplayStep() {
@@ -107,23 +54,11 @@ function initCarousels() {
 
     function startAutoplay() {
       window.clearInterval(autoplayTimer);
-      updateAutoplayButton();
       if (prefersReducedMotion.matches || !hasScrollableContent()) return;
 
       autoplayTimer = window.setInterval(autoplayNext, 4200);
     }
 
-    function toggleAutoplay() {
-      if (prefersReducedMotion.matches || !hasScrollableContent()) return;
-
-      userPaused = !userPaused;
-      updateAutoplayButton();
-    }
-
-    if (autoplayButton) autoplayButton.addEventListener("click", toggleAutoplay);
-    previousButton.addEventListener("click", () => scrollCarousel(-1));
-    nextButton.addEventListener("click", () => scrollCarousel(1));
-    viewport.addEventListener("scroll", updateButtons, { passive: true });
     carousel.addEventListener("mouseenter", () => {
       hoverPaused = true;
     });
@@ -137,35 +72,31 @@ function initCarousels() {
       focusPaused = false;
     });
     window.addEventListener("resize", () => {
-      updateButtons();
       startAutoplay();
     });
     if (typeof prefersReducedMotion.addEventListener === "function") {
       prefersReducedMotion.addEventListener("change", () => {
-        updateAutoplayButton();
         startAutoplay();
       });
     } else if (typeof prefersReducedMotion.addListener === "function") {
       prefersReducedMotion.addListener(() => {
-        updateAutoplayButton();
         startAutoplay();
       });
     }
-    updateButtons();
     startAutoplay();
   });
 }
 
 const PAYMENT_URL = "https://mpago.la/244hsWi";
 // Endpoint opcional para receber o lead (ex.: Formspree/Google Apps Script).
-// Se vazio, apenas exibe a confirmação local e registra um aviso no console.
+// Se vazio, registra um aviso no console; no modo "lead" o fluxo segue para o
+// popup de agradecimento e no modo "payment" segue para o checkout.
 const LEAD_ENDPOINT = "";
 const LEAD_FORM_PRIVACY_TEXT =
   "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.";
 const LEAD_FORM_PAYMENT_DESCRIPTION = "Após o envio, você será direcionado para a página segura de pagamento.";
 const LEAD_FORM_LEAD_DESCRIPTION =
   "Após o envio, a nossa equipe entrará em contato com você para dar continuidade ao seu interesse no workshop.";
-const LEAD_SUCCESS_MESSAGE = "Recebemos seus dados! A equipe entrará em contato em breve.";
 
 const LEAD_FORM_FIELDS = [
   { name: "name", label: "Nome", type: "text", autocomplete: "name" },
@@ -290,10 +221,15 @@ async function handleLeadSubmit(form) {
     return;
   }
 
-  const status = form.querySelector("[data-lead-status]");
-  if (status) {
-    status.textContent = LEAD_SUCCESS_MESSAGE;
-    status.classList.add("is-success");
+  // Fluxo de captação de lead: fecha o modal de lead (quando o envio parte
+  // dele) e abre o popup de agradecimento, devolvendo o foco ao elemento de
+  // origem quando o popup for fechado.
+  if (form.closest("[data-lead-modal]") && leadModalController) {
+    leadModalController.close();
+  }
+
+  if (thankYouModalController) {
+    thankYouModalController.open(document.activeElement);
   }
 }
 
@@ -461,7 +397,7 @@ function initQuiz() {
       <p class="quiz-card__kicker">Orientação institucional</p>
       <h3>Obrigado pelo interesse no Workshop Long Hair FUE.</h3>
       <p class="quiz-card__text">Este encontro presencial é exclusivo para médicos. A equipe pode orientar sobre informações gerais e próximos passos.</p>
-      <button class="btn quiz-cta" type="button" data-quiz-open-form>Falar com a equipe</button>
+      <button class="btn quiz-cta" type="button" data-quiz-open-form>Enviar Informações</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
       <p class="quiz-card__note">Não há diagnóstico ou promessa médica neste fluxo.</p>
     `;
@@ -482,7 +418,7 @@ function initQuiz() {
       <div class="quiz-result" aria-label="Orientação personalizada a partir das respostas">
         ${resultCopy.paragraphs.map((paragraph) => `<p>${paragraph}</p>`).join("")}
       </div>
-      <button class="btn quiz-cta" type="button" data-quiz-open-form>${getQuizOutcome(labelledAnswers) === "payment" ? "Garantir minha vaga agora" : "Falar com a equipe"}</button>
+      <button class="btn quiz-cta" type="button" data-quiz-open-form>${getQuizOutcome(labelledAnswers) === "payment" ? "Garantir minha vaga agora" : "Enviar Informações"}</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
       <p class="quiz-card__note">A inscrição será conduzida pela equipe oficial. O workshop é educacional e exclusivo para médicos.</p>
     `;
@@ -507,7 +443,7 @@ function initQuiz() {
         mode: outcome,
         title: isPayment ? "Complete seus dados para garantir sua vaga" : "Complete seus dados para falar com a equipe",
         description: isPayment ? LEAD_FORM_PAYMENT_DESCRIPTION : LEAD_FORM_LEAD_DESCRIPTION,
-        submitLabel: isPayment ? "Ir para pagamento" : "Falar com a equipe",
+        submitLabel: isPayment ? "Ir para pagamento" : "Enviar Informações",
       })}
       <button class="quiz-restart" type="button" data-quiz-back-result>Voltar ao resultado</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
@@ -595,31 +531,12 @@ document.addEventListener("submit", (event) => {
 });
 
 /**
- * Modal acessível com o formulário de lead para os CTAs "Garanta a sua vaga agora".
- * O formulário é renderizado sob demanda (ao abrir) e removido ao fechar, evitando
- * IDs duplicados com o formulário do quiz e resetando a validação.
+ * Controlador genérico de modal acessível: backdrop, ESC, focus trap e
+ * gerenciamento de foco/scroll lock (`body.is-modal-open`). Reutilizado pelo
+ * modal de lead e pelo popup de agradecimento.
  */
-function initLeadModal() {
-  const modal = document.querySelector("[data-lead-modal]");
-  const triggers = document.querySelectorAll("[data-lead-modal-trigger]");
-  if (!modal || triggers.length === 0) return;
-
-  const dialog = modal.querySelector("[data-lead-modal-dialog]");
-  const body = modal.querySelector("[data-lead-modal-body]");
-  const closeButton = modal.querySelector("[data-lead-modal-close]");
-  if (!dialog || !body || !closeButton) return;
-
+function createModalController({ modal, dialog, closeButton, initialFocus, onOpen, onClose }) {
   let lastFocused = null;
-
-  function renderForm() {
-    body.innerHTML = buildLeadFormMarkup({
-      idPrefix: "modal-lead",
-      mode: "lead",
-      title: "Complete seus dados para falar com a equipe",
-      description: LEAD_FORM_LEAD_DESCRIPTION,
-      submitLabel: "Falar com a equipe",
-    });
-  }
 
   function getFocusable() {
     return Array.from(
@@ -629,36 +546,33 @@ function initLeadModal() {
     );
   }
 
-  function openModal(trigger) {
-    lastFocused = trigger || document.activeElement;
-    renderForm();
+  function open(origin) {
+    lastFocused = origin || document.activeElement;
+    if (onOpen) onOpen();
     modal.hidden = false;
     document.body.classList.add("is-modal-open");
-    // Prioriza o primeiro campo do formulário; o botão de fechar é o fallback.
-    const firstFocusable = dialog.querySelector("input") || dialog.querySelector("button");
+    const firstFocusable =
+      (initialFocus && dialog.querySelector(initialFocus)) ||
+      dialog.querySelector("input") ||
+      dialog.querySelector("button");
     if (firstFocusable) firstFocusable.focus();
   }
 
-  function closeModal() {
+  function close() {
     if (modal.hidden) return;
     modal.hidden = true;
-    body.innerHTML = "";
-    document.body.classList.remove("is-modal-open");
+    if (onClose) onClose();
+    // Mantém o scroll lock caso outro modal ainda esteja aberto.
+    if (!document.querySelector(".lead-modal:not([hidden])")) {
+      document.body.classList.remove("is-modal-open");
+    }
     if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
   }
 
-  triggers.forEach((trigger) => {
-    trigger.setAttribute("aria-haspopup", "dialog");
-    trigger.addEventListener("click", (event) => {
-      event.preventDefault();
-      openModal(trigger);
-    });
-  });
-
-  closeButton.addEventListener("click", closeModal);
+  closeButton.addEventListener("click", close);
 
   modal.addEventListener("click", (event) => {
-    if (event.target === modal || event.target.hasAttribute("data-lead-modal-backdrop")) closeModal();
+    if (event.target !== dialog && !dialog.contains(event.target)) close();
   });
 
   document.addEventListener("keydown", (event) => {
@@ -666,7 +580,7 @@ function initLeadModal() {
 
     if (event.key === "Escape") {
       event.preventDefault();
-      closeModal();
+      close();
       return;
     }
 
@@ -686,8 +600,79 @@ function initLeadModal() {
       first.focus();
     }
   });
+
+  return { open, close };
+}
+
+let leadModalController = null;
+let thankYouModalController = null;
+
+/**
+ * Modal acessível com o formulário de lead para os CTAs "Garanta a sua vaga agora".
+ * O formulário é renderizado sob demanda (ao abrir) e removido ao fechar, evitando
+ * IDs duplicados com o formulário do quiz e resetando a validação.
+ */
+function initLeadModal() {
+  const modal = document.querySelector("[data-lead-modal]");
+  const triggers = document.querySelectorAll("[data-lead-modal-trigger]");
+  if (!modal || triggers.length === 0) return;
+
+  const dialog = modal.querySelector("[data-lead-modal-dialog]");
+  const body = modal.querySelector("[data-lead-modal-body]");
+  const closeButton = modal.querySelector("[data-lead-modal-close]");
+  if (!dialog || !body || !closeButton) return;
+
+  leadModalController = createModalController({
+    modal,
+    dialog,
+    closeButton,
+    onOpen: () => {
+      body.innerHTML = buildLeadFormMarkup({
+        idPrefix: "modal-lead",
+        mode: "lead",
+        title: "Complete seus dados para falar com a equipe",
+        description: LEAD_FORM_LEAD_DESCRIPTION,
+        submitLabel: "Enviar Informações",
+      });
+    },
+    onClose: () => {
+      body.innerHTML = "";
+    },
+  });
+
+  triggers.forEach((trigger) => {
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      leadModalController.open(trigger);
+    });
+  });
+}
+
+/**
+ * Popup de agradecimento exibido após o envio válido dos formulários de captação
+ * de lead (modo "lead").
+ */
+function initThankYouModal() {
+  const modal = document.querySelector("[data-thank-you-modal]");
+  if (!modal) return;
+
+  const dialog = modal.querySelector("[data-thank-you-dialog]");
+  const closeButton = modal.querySelector("[data-thank-you-close]");
+  const actionButton = modal.querySelector("[data-thank-you-close-button]");
+  if (!dialog || !closeButton) return;
+
+  thankYouModalController = createModalController({
+    modal,
+    dialog,
+    closeButton,
+    initialFocus: "[data-thank-you-close-button]",
+  });
+
+  if (actionButton) actionButton.addEventListener("click", thankYouModalController.close);
 }
 
 initQuiz();
 initCarousels();
 initLeadModal();
+initThankYouModal();
