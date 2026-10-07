@@ -1,8 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 
-const WHATSAPP_PHONE = "553884213318";
-const WHATSAPP_MESSAGE = "Olá, estou interessado em mais informações sobre o Workshop Long Hair Fue \nministrado pela Dra. Patricia Veloso";
+const LEAD_SUCCESS_MESSAGE = "Recebemos seus dados! A equipe entrará em contato em breve.";
 
 const HERO_CTA = ".hero__actions [data-lead-modal-trigger]";
 
@@ -19,6 +18,9 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await expect(dialog.getByLabel("E-mail")).toBeVisible();
     await expect(dialog.getByLabel("Telefone")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Falar com a equipe" })).toBeVisible();
+    await expect(dialog).toContainText(
+      "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.",
+    );
 
     // O foco inicial vai para o primeiro campo do formulário
     await expect(dialog.getByLabel("Nome")).toBeFocused();
@@ -53,7 +55,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await expect(page).toHaveURL(/\/$/);
   });
 
-  test("envio válido abre o WhatsApp com número e mensagem configurados", async ({ page }) => {
+  test("envio válido mostra a confirmação e não redireciona para WhatsApp", async ({ page }) => {
     await page.goto("/");
     await page.locator(HERO_CTA).click();
 
@@ -63,9 +65,12 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await dialog.getByLabel("Telefone").fill("21999999999");
     await dialog.getByRole("button", { name: "Falar com a equipe" }).click();
 
-    await expect(page).toHaveURL(new RegExp(`(wa\\.me|api\\.whatsapp\\.com).*${WHATSAPP_PHONE}`));
-    const whatsappUrl = new URL(page.url());
-    expect(whatsappUrl.searchParams.get("text")).toBe(WHATSAPP_MESSAGE);
+    const status = dialog.locator("[data-lead-status]");
+    await expect(status).toHaveText(LEAD_SUCCESS_MESSAGE);
+    await expect(status).toHaveClass(/is-success/);
+    await expect(dialog).toBeVisible();
+    expect(page.url()).not.toMatch(/wa\.me|api\.whatsapp\.com/i);
+    await expect(page.locator('a[href*="wa.me"], a[href*="api.whatsapp.com"]')).toHaveCount(0);
   });
 
   test("ESC fecha o modal e devolve o foco ao CTA de origem", async ({ page }) => {

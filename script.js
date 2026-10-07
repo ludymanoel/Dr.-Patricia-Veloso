@@ -156,17 +156,16 @@ function initCarousels() {
   });
 }
 
-const SIGNUP_TARGET = "#inscricao";
-const SIGNUP_LABEL = "Garanta a sua vaga agora";
 const PAYMENT_URL = "https://mpago.la/244hsWi";
-const WHATSAPP_PHONE = "553884213318";
-const WHATSAPP_MESSAGE = "Olá, estou interessado em mais informações sobre o Workshop Long Hair Fue \nministrado pela Dra. Patricia Veloso";
-const WHATSAPP_UNAVAILABLE_MESSAGE = "Atendimento por WhatsApp indisponível no momento. O número de contato ainda não foi configurado.";
+// Endpoint opcional para receber o lead (ex.: Formspree/Google Apps Script).
+// Se vazio, apenas exibe a confirmação local e registra um aviso no console.
+const LEAD_ENDPOINT = "";
 const LEAD_FORM_PRIVACY_TEXT =
-  "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop. Esta página não armazena essas informações; após o envio, você será redirecionado para pagamento ou WhatsApp.";
+  "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.";
 const LEAD_FORM_PAYMENT_DESCRIPTION = "Após o envio, você será direcionado para a página segura de pagamento.";
-const LEAD_FORM_WHATSAPP_DESCRIPTION =
-  "Após o envio, abriremos o WhatsApp com uma mensagem pronta para solicitar mais informações.";
+const LEAD_FORM_LEAD_DESCRIPTION =
+  "Após o envio, a nossa equipe entrará em contato com você para dar continuidade ao seu interesse no workshop.";
+const LEAD_SUCCESS_MESSAGE = "Recebemos seus dados! A equipe entrará em contato em breve.";
 
 const LEAD_FORM_FIELDS = [
   { name: "name", label: "Nome", type: "text", autocomplete: "name" },
@@ -194,11 +193,12 @@ function buildLeadFormFields(idPrefix) {
 
 /**
  * Bloco completo do formulário de lead compartilhado entre o quiz e o modal.
- * `mode` decide o destino: "payment" (Mercado Pago) ou "whatsapp".
+ * `mode` decide o destino: "payment" (Mercado Pago) ou "lead" (captação de lead
+ * com contato posterior da equipe).
  */
 function buildLeadFormMarkup({ idPrefix, mode, title, description, submitLabel }) {
-  // O kicker "Atendimento" foi removido do fluxo de WhatsApp; mantém-se apenas
-  // o kicker de "Inscrição" no fluxo de pagamento.
+  // O kicker "Inscrição" permanece apenas no fluxo de pagamento; no fluxo de
+  // captação de lead o formulário não exibe kicker.
   const kicker = mode === "payment" ? '<p class="quiz-card__kicker">Inscrição</p>' : "";
   return `
       ${kicker}
@@ -248,22 +248,53 @@ function validateLeadForm(form) {
   return true;
 }
 
-function handleLeadSubmit(form) {
+/**
+ * Envia o lead para `LEAD_ENDPOINT`. Fluxo unificado entre os modos "payment" e
+ * "lead": se o endpoint não estiver configurado, apenas registra um aviso no
+ * console (a validação de entrega fica a cargo de quem configurar o endpoint).
+ * Não verifica `response.ok`.
+ */
+async function sendLead(form) {
+  const payload = {
+    name: form.elements.name.value.trim(),
+    email: form.elements.email.value.trim(),
+    phone: form.elements.phone.value.trim(),
+  };
+
+  if (!LEAD_ENDPOINT) {
+    console.warn("LEAD_ENDPOINT não configurado: o lead não foi enviado ao endpoint.");
+    return;
+  }
+
+  await fetch(LEAD_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+async function handleLeadSubmit(form) {
   if (!validateLeadForm(form)) return;
 
-  const mode = form.dataset.leadMode === "payment" ? "payment" : "whatsapp";
+  const mode = form.dataset.leadMode === "payment" ? "payment" : "lead";
+
+  // Ambos os modos passam pelo mesmo fluxo de captação do lead.
+  try {
+    await sendLead(form);
+  } catch (error) {
+    console.warn("Não foi possível enviar o lead para o endpoint configurado.", error);
+  }
+
   if (mode === "payment") {
     window.location.href = PAYMENT_URL;
     return;
   }
 
   const status = form.querySelector("[data-lead-status]");
-  if (!WHATSAPP_PHONE) {
-    if (status) status.textContent = WHATSAPP_UNAVAILABLE_MESSAGE;
-    return;
+  if (status) {
+    status.textContent = LEAD_SUCCESS_MESSAGE;
+    status.classList.add("is-success");
   }
-
-  window.location.href = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 }
 
 const QUIZ_QUESTIONS = [
@@ -372,7 +403,7 @@ function buildQuizResultCopy(answers) {
 
 function getQuizOutcome(answers) {
   const isPositive = answers.Perfil === "Médico(a)" && answers["Intenção de participação"] === "Quer avançar";
-  return isPositive ? "payment" : "whatsapp";
+  return isPositive ? "payment" : "lead";
 }
 
 function initQuiz() {
@@ -469,14 +500,14 @@ function initQuiz() {
   function renderLeadForm() {
     const outcome = getQuizOutcome(getCurrentLabelledAnswers());
     const isPayment = outcome === "payment";
-    setProgress(isPayment ? "Pagamento" : "Atendimento", 100);
+    setProgress(isPayment ? "Pagamento" : "Contato", 100);
     card.innerHTML = `
       ${buildLeadFormMarkup({
         idPrefix: "lead",
         mode: outcome,
         title: isPayment ? "Complete seus dados para garantir sua vaga" : "Complete seus dados para falar com a equipe",
-        description: isPayment ? LEAD_FORM_PAYMENT_DESCRIPTION : LEAD_FORM_WHATSAPP_DESCRIPTION,
-        submitLabel: isPayment ? "Ir para pagamento" : "Conversar com a Equipe",
+        description: isPayment ? LEAD_FORM_PAYMENT_DESCRIPTION : LEAD_FORM_LEAD_DESCRIPTION,
+        submitLabel: isPayment ? "Ir para pagamento" : "Falar com a equipe",
       })}
       <button class="quiz-restart" type="button" data-quiz-back-result>Voltar ao resultado</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
@@ -583,9 +614,9 @@ function initLeadModal() {
   function renderForm() {
     body.innerHTML = buildLeadFormMarkup({
       idPrefix: "modal-lead",
-      mode: "whatsapp",
+      mode: "lead",
       title: "Complete seus dados para falar com a equipe",
-      description: LEAD_FORM_WHATSAPP_DESCRIPTION,
+      description: LEAD_FORM_LEAD_DESCRIPTION,
       submitLabel: "Falar com a equipe",
     });
   }

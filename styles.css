@@ -45,6 +45,7 @@ h2 { font-size: clamp(2.05rem, 5.2vw, 3.75rem); letter-spacing: -.035em; }
 h3 { font-size: 1.18rem; letter-spacing: -.01em; }
 p { margin: 0; }
 .hero__lead { margin-top: 1.3rem; font-size: clamp(1.08rem, 2vw, 1.28rem); max-width: 46rem; color: #343a46; }
+.hero__batch { margin-top: 1rem; font-family: var(--serif); font-weight: 500; color: var(--navy); text-align: center; font-size: clamp(1.5rem, 3.6vw, 2.4rem); letter-spacing: -.02em; }
 .hero__logo { display: block; width: min(100%, 28rem); margin-inline: auto; margin-bottom: clamp(1.4rem, 4vw, 2.4rem); }
 .hero__actions { margin-top: 1.7rem; display: flex; flex-direction: column; gap: .8rem; }
 .microcopy { margin-top: .85rem; color: var(--gold-text); font-size: .95rem; font-weight: 850; }
@@ -126,6 +127,7 @@ p { margin: 0; }
 .lead-form__error { min-height: 1.25rem; color: #a53232; font-size: .88rem; font-weight: 750; }
 .lead-form__privacy { padding: .9rem; border-radius: 14px; background: rgba(232,220,200,.34); color: #4d586a; font-size: .9rem; }
 .lead-form__status { color: #a53232; font-weight: 850; }
+.lead-form__status.is-success { color: #1f7a4d; }
 .lead-form__submit { width: 100%; margin-top: .25rem; cursor: pointer; }
 .quiz-loading { position: absolute; inset: 1.55rem 0 0; z-index: 2; display: grid; place-content: center; gap: 1rem; border-radius: calc(var(--radius) + 8px); background: rgba(31,42,68,.9); color: var(--beige); text-align: center; backdrop-filter: blur(10px); }
 .quiz-loading[hidden] { display: none; }
@@ -158,6 +160,10 @@ p { margin: 0; }
 .note-card h3 { color: #fff; }
 .note-card p { color: rgba(255,255,255,.82) !important; }
 .audience { background: #fff; }
+.included { background: #fff; }
+.included__list { display: grid; gap: 1rem; max-width: 58rem; margin: 0; padding: 0; list-style: none; }
+.included__list li { position: relative; padding: 1rem 1.15rem 1rem 2.9rem; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: 0 10px 24px rgba(31,42,68,.045); color: var(--navy); font-weight: 800; }
+.included__list li::before { content: ""; position: absolute; left: 1.15rem; top: 50%; width: .7rem; height: .7rem; transform: translateY(-50%) rotate(45deg); background: linear-gradient(135deg, var(--gold), var(--navy)); }
 .format { background: rgba(232,220,200,.46); border-bottom: 1px solid var(--line); }
 .format__grid div { display: grid; gap: .4rem; }
 .format__grid strong { color: var(--gold-text); text-transform: uppercase; letter-spacing: .08em; font-size: .78rem; }

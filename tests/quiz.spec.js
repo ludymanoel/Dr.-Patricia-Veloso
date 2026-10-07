@@ -2,9 +2,14 @@
 const { test, expect } = require("@playwright/test");
 
 const PAYMENT_URL = "https://mpago.la/244hsWi";
-const WHATSAPP_PHONE = "553884213318";
-const WHATSAPP_MESSAGE = "Olá, estou interessado em mais informações sobre o Workshop Long Hair Fue \nministrado pela Dra. Patricia Veloso";
+const LEAD_SUCCESS_MESSAGE = "Recebemos seus dados! A equipe entrará em contato em breve.";
 const FORBIDDEN_COPY = new RegExp(["Solicitar informa" + "ções", "1" + "00", "capaci" + "dade"].join("|"), "i");
+
+// A página não deve abrir o WhatsApp em nenhum CTA ou fluxo.
+async function expectNoWhatsAppLinks(page) {
+  await expect(page.locator('a[href*="wa.me"], a[href*="api.whatsapp.com"]')).toHaveCount(0);
+  expect(page.url()).not.toMatch(/wa\.me|api\.whatsapp\.com/i);
+}
 
 async function startQuiz(page) {
   await page.goto("/");
@@ -80,7 +85,7 @@ test.describe("Quiz interativo", () => {
     await expect(page.locator("[data-lead-form]")).toBeVisible();
     await expect(page.locator("[data-quiz-card] h3")).toHaveText("Complete seus dados para garantir sua vaga");
     await expect(page.locator("[data-lead-form]")).toContainText("Após o envio, você será direcionado para a página segura de pagamento.");
-    await expect(page.locator("[data-lead-form]")).toContainText("Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop. Esta página não armazena essas informações; após o envio, você será redirecionado para pagamento ou WhatsApp.");
+    await expect(page.locator("[data-lead-form]")).toContainText("Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.");
     await expect(page.getByLabel("Nome")).toBeVisible();
     await expect(page.getByLabel("E-mail")).toBeVisible();
     await expect(page.getByLabel("Telefone")).toBeVisible();
@@ -104,7 +109,7 @@ test.describe("Quiz interativo", () => {
     await expect(page.locator("[data-lead-form]")).toHaveCount(0);
   });
 
-  test("fluxo incerto exibe formulário de WhatsApp com número configurado", async ({ page }) => {
+  test("fluxo incerto exibe captação de lead, confirma o envio e não redireciona para WhatsApp", async ({ page }) => {
     await startQuiz(page);
     await answer(page, 0, "Etapa 2 de 4");
     await answer(page, 0, "Etapa 3 de 4");
@@ -114,18 +119,17 @@ test.describe("Quiz interativo", () => {
     await page.locator(".quiz-cta").click();
 
     await expect(page.locator("[data-lead-form]")).toBeVisible();
+    await expect(page.locator("[data-lead-form]")).toHaveAttribute("data-lead-mode", "lead");
     await expect(page.locator("[data-quiz-card] h3")).toHaveText("Complete seus dados para falar com a equipe");
-    await expect(page.locator("[data-lead-form]")).toContainText("Após o envio, abriremos o WhatsApp com uma mensagem pronta para solicitar mais informações.");
+    await expect(page.locator("[data-lead-form]")).toContainText("Após o envio, a nossa equipe entrará em contato com você para dar continuidade ao seu interesse no workshop.");
 
     await fillLeadForm(page);
-    await page.getByRole("button", { name: "Conversar com a Equipe" }).click();
+    await page.getByRole("button", { name: "Falar com a equipe" }).click();
 
-    const encodedMessage = await page.evaluate((message) => encodeURIComponent(message), WHATSAPP_MESSAGE);
-    expect(encodedMessage).toContain("%0Aministrado");
-    await expect(page).toHaveURL(new RegExp(`(wa\\.me|api\\.whatsapp\\.com).*${WHATSAPP_PHONE}`));
-    const whatsappUrl = new URL(page.url());
-    expect(page.url()).toContain(WHATSAPP_PHONE);
-    expect(whatsappUrl.searchParams.get("text")).toBe(WHATSAPP_MESSAGE);
+    const status = page.locator("[data-lead-status]");
+    await expect(status).toHaveText(LEAD_SUCCESS_MESSAGE);
+    await expect(status).toHaveClass(/is-success/);
+    await expectNoWhatsAppLinks(page);
   });
 
   test("validação acessível impede envio inválido", async ({ page }) => {
@@ -143,7 +147,7 @@ test.describe("Quiz interativo", () => {
     await expect(page).toHaveURL(/\/$/);
   });
 
-  test("ramificação Não sou médico(a) carrega formulário de WhatsApp", async ({ page }) => {
+  test("ramificação Não sou médico(a) carrega formulário de captação de lead", async ({ page }) => {
     await startQuiz(page);
 
     await answer(page, 2, "Orientação");
@@ -165,11 +169,12 @@ test.describe("Quiz interativo", () => {
     await expect(page.locator("[data-quiz-restart]")).toBeVisible();
   });
 
-  test("página não exibe termos proibidos e usa texto no kicker inicial", async ({ page }) => {
+  test("página não exibe termos proibidos, não tem links de WhatsApp e usa texto no kicker inicial", async ({ page }) => {
     await page.goto("/");
 
     await expect(page.getByText(FORBIDDEN_COPY)).toHaveCount(0);
     await expect(page.locator("[data-quiz-kicker]")).toHaveText("Workshop Long Hair FUE");
     await expect(page.locator("[data-quiz-kicker] img")).toHaveCount(0);
+    await expectNoWhatsAppLinks(page);
   });
 });

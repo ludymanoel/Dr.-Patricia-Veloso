@@ -6,8 +6,8 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 
 ## Seções da página
 
-1. **Hero** (`#topo`) — headline, proposta do encontro e CTAs (WhatsApp + "Ver programa").
-2. **Quiz interativo** (`#quiz`) — fluxo de 4 perguntas que personaliza a orientação e gera mensagem pronta de WhatsApp.
+1. **Hero** (`#topo`) — headline, proposta do encontro e CTAs (captação de lead + "Ver programa").
+2. **Quiz interativo** (`#quiz`) — fluxo de 4 perguntas que personaliza a orientação e direciona ao pagamento ou à captação de lead.
 3. **Quem conduzirá o workshop** (`#docente`) — bio e credenciais da Dra. Patricia Veloso.
 4. **Técnica** (`#tecnica`) — o que muda quando o fio permanece longo, com imagem de apoio.
 5. **Público que recusa a raspagem** (`#pacientes`) — faixa editorial sobre a demanda atendida.
@@ -15,16 +15,17 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 7. **Densidade** (`#density`) — bloco "RIGHT DENSITY".
 8. **Mega sessão** (`#mega-sessao`) — raciocínio operacional em casos extensos.
 9. **Para quem é** (`#publico`) — grid de perfis médicos + disclaimer educacional.
-10. **Inscrição** (`#inscricao`) — dados logísticos e CTA de WhatsApp.
-11. **Registros** (`#registros`) — carrossel de imagens acadêmicas com autoplay.
-12. **FAQ** (`#faq`) — acordeão com perguntas frequentes.
-13. **CTA final** — fechamento com chamada para WhatsApp.
+10. **O que está incluído** (`#incluido`) — itens inclusos na inscrição do workshop.
+11. **Inscrição** (`#inscricao`) — dados logísticos e CTA de captação de lead.
+12. **Registros** (`#registros`) — carrossel de imagens acadêmicas com autoplay.
+13. **FAQ** (`#faq`) — acordeão com perguntas frequentes.
+14. **CTA final** — fechamento com chamada para captação de lead.
 
 ## Funcionalidades
 
-- **Quiz personalizado por respostas**: 4 etapas, barra de progresso, ramificação para não médicos e resultado com copy adaptada. O resumo das respostas é embutido na URL do WhatsApp (nenhum dado é persistido).
+- **Quiz personalizado por respostas**: 4 etapas, barra de progresso, ramificação para não médicos e resultado com copy adaptada. O resultado positivo leva ao checkout direto (Mercado Pago); os demais fluxos abrem um formulário de captação de lead (nenhum dado é persistido no site).
 - **Carrosséis acessíveis** (programa e registros): autoplay com botão **Pausar/Retomar** (`aria-pressed`), pausa em hover/focus, atualização de estado dos botões Anterior/Próximo e respeito a `prefers-reduced-motion`.
-- **CTA de WhatsApp padronizado**: todos os links `[data-whatsapp]` recebem a mesma URL/mensagem via `script.js`.
+- **Captação de lead**: o formulário nome/e-mail/telefone é compartilhado pelo quiz e pelo modal dos CTAs. Ao enviar, exibe a confirmação de que a equipe entrará em contato; com `LEAD_ENDPOINT` configurado em `script.js`, os dados são enviados por POST (ex.: Formspree/Google Apps Script).
 - **FAQ em acordeão**: `<details>` nativos com abertura exclusiva (abrir um fecha os demais).
 - **Navegação âncora** e skip-link para o conteúdo.
 
@@ -34,7 +35,7 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 .
 ├── index.html            # Página única (todas as seções)
 ├── styles.css            # Design tokens (CSS variables) e estilos responsivos
-├── script.js             # Quiz, carrosséis, WhatsApp e acordeão
+├── script.js             # Quiz, carrosséis, captação de lead e acordeão
 ├── img/                  # Imagens usadas pela página
 ├── tests/                # Testes E2E (Playwright)
 ├── playwright.config.js  # Configuração do Playwright (servidor estático local)
@@ -64,7 +65,7 @@ Requisitos: Node.js 22+ e Chromium instalado.
 ```bash
 npm install                    # instala @playwright/test
 npx playwright install chromium
-npm run test:e2e               # roda a suíte (10 testes)
+npm run test:e2e               # roda a suíte (18 testes)
 ```
 
 Opcional: `npm run test:e2e:ui` abre o modo interativo.
