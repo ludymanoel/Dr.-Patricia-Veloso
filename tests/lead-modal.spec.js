@@ -2,11 +2,19 @@
 const { test, expect } = require("@playwright/test");
 
 const THANK_YOU_MESSAGE = "As informações foram encaminhadas para a equipe do evento e em breve retornaremos o contato.";
+const LEAD_ENDPOINT_PATTERN = "**/macros/nexumag.com.br/s/**/exec";
+const LEAD_CAPTURED_SESSION_KEY = "longHairFueLeadCaptured";
 
 const HERO_CTA = ".hero__actions [data-lead-modal-trigger]";
 
 test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
-  test("CTA do hero abre o modal com nome, e-mail, telefone e botão Enviar Informações", async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
+    await page.route(LEAD_ENDPOINT_PATTERN, async (route) => {
+      await route.fulfill({ status: 200, contentType: "text/html", body: "ok" });
+    });
+  });
+
+  test("CTA do hero sem sessão abre o modal com nome, e-mail, Telefone + DDD e botão Enviar Informações", async ({ page }) => {
     await page.goto("/");
 
     await page.locator(HERO_CTA).click();
@@ -16,7 +24,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await expect(dialog).toContainText("Complete seus dados para falar com a equipe");
     await expect(dialog.getByLabel("Nome")).toBeVisible();
     await expect(dialog.getByLabel("E-mail")).toBeVisible();
-    await expect(dialog.getByLabel("Telefone")).toBeVisible();
+    await expect(dialog.getByLabel("Telefone + DDD")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Enviar Informações" })).toBeVisible();
     await expect(dialog).toContainText(
       "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.",
@@ -50,7 +58,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await expect(dialog.getByText("Informe um e-mail válido.")).toBeVisible();
     await expect(dialog.getByLabel("E-mail")).toHaveAttribute("aria-invalid", "true");
     await expect(dialog.getByText("Informe um telefone válido com DDD.")).toBeVisible();
-    await expect(dialog.getByLabel("Telefone")).toHaveAttribute("aria-invalid", "true");
+    await expect(dialog.getByLabel("Telefone + DDD")).toHaveAttribute("aria-invalid", "true");
     await expect(dialog).toBeVisible();
     await expect(page).toHaveURL(/\/$/);
   });
@@ -62,7 +70,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Nome").fill("Dra. Ana Exemplo");
     await dialog.getByLabel("E-mail").fill("ana@example.com");
-    await dialog.getByLabel("Telefone").fill("21999999999");
+    await dialog.getByLabel("Telefone + DDD").fill("21999999999");
     await dialog.getByRole("button", { name: "Enviar Informações" }).click();
 
     const thankYou = page.locator("[data-thank-you-dialog]");
@@ -74,7 +82,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await expect(page.locator('a[href*="wa.me"], a[href*="api.whatsapp.com"]')).toHaveCount(0);
   });
 
-  test("popup de agradecimento fecha com ESC e devolve o foco ao CTA de origem", async ({ page }) => {
+  test("ao fechar popup vindo de CTA, carrega o quiz e foca Responder o quiz", async ({ page }) => {
     await page.goto("/");
     const trigger = page.locator(HERO_CTA);
     await trigger.click();
@@ -82,7 +90,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Nome").fill("Dra. Ana Exemplo");
     await dialog.getByLabel("E-mail").fill("ana@example.com");
-    await dialog.getByLabel("Telefone").fill("21999999999");
+    await dialog.getByLabel("Telefone + DDD").fill("21999999999");
     await dialog.getByRole("button", { name: "Enviar Informações" }).click();
 
     const thankYou = page.locator("[data-thank-you-dialog]");
@@ -90,7 +98,9 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await page.keyboard.press("Escape");
 
     await expect(page.locator("[data-thank-you-modal]")).toBeHidden();
-    await expect(trigger).toBeFocused();
+    await expect(page.locator("[data-quiz-progress-label]")).toHaveText("Início");
+    await expect(page.locator("[data-quiz-start]")).toBeVisible();
+    await expect(page.locator("[data-quiz-start]")).toBeFocused();
   });
 
   test("botão Fechar do popup de agradecimento encerra o fluxo", async ({ page }) => {
@@ -100,7 +110,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Nome").fill("Dra. Ana Exemplo");
     await dialog.getByLabel("E-mail").fill("ana@example.com");
-    await dialog.getByLabel("Telefone").fill("21999999999");
+    await dialog.getByLabel("Telefone + DDD").fill("21999999999");
     await dialog.getByRole("button", { name: "Enviar Informações" }).click();
 
     const thankYou = page.locator("[data-thank-you-dialog]");
@@ -108,6 +118,17 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await thankYou.getByRole("button", { name: "Fechar", exact: true }).click();
     await expect(page.locator("[data-thank-you-modal]")).toBeHidden();
     await expect(page.locator("[data-lead-modal]")).toBeHidden();
+    await expect(page.locator("[data-quiz-start]")).toBeFocused();
+  });
+
+  test("após lead capturado na sessão, CTA Garanta redireciona direto para checkout sem modal", async ({ page }) => {
+    await page.addInitScript(([key]) => window.sessionStorage.setItem(key, "true"), [LEAD_CAPTURED_SESSION_KEY]);
+    await page.goto("/");
+
+    await page.locator(HERO_CTA).click();
+
+    await expect(page.locator("[data-lead-modal]")).toBeHidden();
+    await expect(page).toHaveURL(/(mpago\.la\/244hsWi|mercadopago\.com\.br)/);
   });
 
   test("ESC fecha o modal e devolve o foco ao CTA de origem", async ({ page }) => {
@@ -133,6 +154,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     await expect(dialog.getByLabel("Nome")).toBeVisible();
+    await expect(dialog.getByLabel("Telefone + DDD")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Enviar Informações" })).toBeVisible();
   });
 });

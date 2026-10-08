@@ -88,21 +88,111 @@ function initCarousels() {
 }
 
 const PAYMENT_URL = "https://mpago.la/244hsWi";
-// Endpoint opcional para receber o lead (ex.: Formspree/Google Apps Script).
-// Se vazio, registra um aviso no console; no modo "lead" o fluxo segue para o
-// popup de agradecimento e no modo "payment" segue para o checkout.
-const LEAD_ENDPOINT = "";
+// Endpoint do Google Apps Script que recebe os leads na planilha do cliente.
+// Apps Script deve ser acionado por submit HTML em iframe oculto para evitar CORS.
+const LEAD_ENDPOINT =
+  "https://script.google.com/a/macros/nexumag.com.br/s/AKfycbyJish5KU5nKRBT79Q77zj_130mmoKOlc7MNr-I9jPD_JvNxPt0DQxjgJE9orDQkPkpuA/exec";
+const LEAD_SUBMIT_IFRAME_ID = "lead-submit-frame";
+const LEAD_SUBMIT_TIMEOUT_MS = 3000;
+const LEAD_CAPTURED_SESSION_KEY = "longHairFueLeadCaptured";
+const NOT_DOCTOR_SESSION_KEY = "longHairFueNotDoctor";
+const LOAD_QUIZ_FROM_CTA_EVENT = "longhair:load-quiz-from-cta";
 const LEAD_FORM_PRIVACY_TEXT =
   "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.";
 const LEAD_FORM_PAYMENT_DESCRIPTION = "Após o envio, você será direcionado para a página segura de pagamento.";
 const LEAD_FORM_LEAD_DESCRIPTION =
   "Após o envio, a nossa equipe entrará em contato com você para dar continuidade ao seu interesse no workshop.";
+const THANK_YOU_DEFAULT_TITLE = "Obrigado!";
+const THANK_YOU_DEFAULT_MESSAGE = "As informações foram encaminhadas para a equipe do evento e em breve retornaremos o contato.";
+const NOT_DOCTOR_REGISTERED_TITLE = "Informações registradas";
+const NOT_DOCTOR_REGISTERED_MESSAGE =
+  "Suas informações já foram registradas. A equipe do evento entrará em contato em breve.";
 
 const LEAD_FORM_FIELDS = [
   { name: "name", label: "Nome", type: "text", autocomplete: "name" },
   { name: "email", label: "E-mail", type: "email", autocomplete: "email" },
-  { name: "phone", label: "Telefone", type: "tel", autocomplete: "tel", inputmode: "tel" },
+  { name: "phone", label: "Telefone + DDD", type: "tel", autocomplete: "tel", inputmode: "tel" },
 ];
+
+let leadCapturedInMemory = false;
+let notDoctorInMemory = false;
+let shouldLoadQuizAfterThankYouClose = false;
+
+function getSessionStorage() {
+  try {
+    return window.sessionStorage;
+  } catch (error) {
+    return null;
+  }
+}
+
+function hasCapturedLead() {
+  const storage = getSessionStorage();
+  if (!storage) return leadCapturedInMemory;
+
+  try {
+    return Boolean(storage.getItem(LEAD_CAPTURED_SESSION_KEY));
+  } catch (error) {
+    return leadCapturedInMemory;
+  }
+}
+
+function markLeadCaptured() {
+  leadCapturedInMemory = true;
+  const storage = getSessionStorage();
+  if (!storage) return;
+
+  try {
+    storage.setItem(LEAD_CAPTURED_SESSION_KEY, new Date().toISOString());
+  } catch (error) {
+    // Fallback em memória já foi atualizado acima.
+  }
+}
+
+function hasNotDoctorFlag() {
+  const storage = getSessionStorage();
+  if (!storage) return notDoctorInMemory;
+
+  try {
+    return Boolean(storage.getItem(NOT_DOCTOR_SESSION_KEY));
+  } catch (error) {
+    return notDoctorInMemory;
+  }
+}
+
+function markNotDoctor() {
+  notDoctorInMemory = true;
+  const storage = getSessionStorage();
+  if (!storage) return;
+
+  try {
+    storage.setItem(NOT_DOCTOR_SESSION_KEY, new Date().toISOString());
+  } catch (error) {
+    // Fallback em memória já foi atualizado acima.
+  }
+}
+
+function clearNotDoctor() {
+  notDoctorInMemory = false;
+  const storage = getSessionStorage();
+  if (!storage) return;
+
+  try {
+    storage.removeItem(NOT_DOCTOR_SESSION_KEY);
+  } catch (error) {
+    // Fallback em memória já foi atualizado acima.
+  }
+}
+
+function openNotDoctorRegisteredPopup(origin) {
+  shouldLoadQuizAfterThankYouClose = false;
+  if (thankYouModalController) {
+    thankYouModalController.open(origin, {
+      title: NOT_DOCTOR_REGISTERED_TITLE,
+      message: NOT_DOCTOR_REGISTERED_MESSAGE,
+    });
+  }
+}
 
 /**
  * Monta os campos nome/e-mail/telefone do formulário de lead.
@@ -180,27 +270,65 @@ function validateLeadForm(form) {
 }
 
 /**
- * Envia o lead para `LEAD_ENDPOINT`. Fluxo unificado entre os modos "payment" e
- * "lead": se o endpoint não estiver configurado, apenas registra um aviso no
- * console (a validação de entrega fica a cargo de quem configurar o endpoint).
- * Não verifica `response.ok`.
+ * Envia o lead para o Google Apps Script por submit HTML em iframe oculto.
+ * Não usa fetch/JSON porque Apps Script costuma bloquear CORS nesse fluxo.
+ * A Promise resolve no load do iframe ou por timeout para não travar popup/checkout.
  */
-async function sendLead(form) {
+function sendLead(form) {
   const payload = {
     name: form.elements.name.value.trim(),
     email: form.elements.email.value.trim(),
     phone: form.elements.phone.value.trim(),
+    lead_mode: form.dataset.leadMode === "payment" ? "payment" : "lead",
+    page_url: window.location.href,
+    page_title: document.title,
+    submitted_at: new Date().toISOString(),
   };
 
-  if (!LEAD_ENDPOINT) {
-    console.warn("LEAD_ENDPOINT não configurado: o lead não foi enviado ao endpoint.");
-    return;
-  }
+  return new Promise((resolve) => {
+    let iframe = document.getElementById(LEAD_SUBMIT_IFRAME_ID);
+    if (!iframe) {
+      iframe = document.createElement("iframe");
+      iframe.id = LEAD_SUBMIT_IFRAME_ID;
+      iframe.name = LEAD_SUBMIT_IFRAME_ID;
+      iframe.style.display = "none";
+      iframe.setAttribute("aria-hidden", "true");
+      iframe.tabIndex = -1;
+      document.body.appendChild(iframe);
+    }
 
-  await fetch(LEAD_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    const tempForm = document.createElement("form");
+    tempForm.method = "POST";
+    tempForm.action = LEAD_ENDPOINT;
+    tempForm.target = LEAD_SUBMIT_IFRAME_ID;
+    tempForm.style.display = "none";
+
+    Object.entries(payload).forEach(([name, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      tempForm.appendChild(input);
+    });
+
+    let settled = false;
+    const cleanup = () => {
+      iframe.removeEventListener("load", handleLoad);
+      tempForm.remove();
+    };
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      cleanup();
+      resolve();
+    };
+    const handleLoad = () => finish();
+    const timeoutId = window.setTimeout(finish, LEAD_SUBMIT_TIMEOUT_MS);
+
+    iframe.addEventListener("load", handleLoad, { once: true });
+    document.body.appendChild(tempForm);
+    tempForm.submit();
   });
 }
 
@@ -215,6 +343,7 @@ async function handleLeadSubmit(form) {
   } catch (error) {
     console.warn("Não foi possível enviar o lead para o endpoint configurado.", error);
   }
+  markLeadCaptured();
 
   if (mode === "payment") {
     window.location.href = PAYMENT_URL;
@@ -224,12 +353,18 @@ async function handleLeadSubmit(form) {
   // Fluxo de captação de lead: fecha o modal de lead (quando o envio parte
   // dele) e abre o popup de agradecimento, devolvendo o foco ao elemento de
   // origem quando o popup for fechado.
-  if (form.closest("[data-lead-modal]") && leadModalController) {
+  const submittedFromCtaModal = Boolean(form.closest("[data-lead-modal]"));
+  if (submittedFromCtaModal) shouldLoadQuizAfterThankYouClose = true;
+
+  if (submittedFromCtaModal && leadModalController) {
     leadModalController.close();
   }
 
   if (thankYouModalController) {
-    thankYouModalController.open(document.activeElement);
+    thankYouModalController.open(document.activeElement, {
+      title: THANK_YOU_DEFAULT_TITLE,
+      message: THANK_YOU_DEFAULT_MESSAGE,
+    });
   }
 }
 
@@ -397,7 +532,6 @@ function initQuiz() {
       <p class="quiz-card__kicker">Orientação institucional</p>
       <h3>Obrigado pelo interesse no Workshop Long Hair FUE.</h3>
       <p class="quiz-card__text">Este encontro presencial é exclusivo para médicos. A equipe pode orientar sobre informações gerais e próximos passos.</p>
-      <button class="btn quiz-cta" type="button" data-quiz-open-form>Enviar Informações</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
       <p class="quiz-card__note">Não há diagnóstico ou promessa médica neste fluxo.</p>
     `;
@@ -412,13 +546,16 @@ function initQuiz() {
       "Intenção de participação": answers["Intenção de participação"],
     };
     const resultCopy = buildQuizResultCopy(labelledAnswers);
+    const outcome = getQuizOutcome(labelledAnswers);
+    const capturedLead = hasCapturedLead();
+    const goesToCheckout = outcome === "payment" || capturedLead;
     card.innerHTML = `
       <p class="quiz-card__kicker">Próximo passo</p>
       <h3>${resultCopy.title}</h3>
       <div class="quiz-result" aria-label="Orientação personalizada a partir das respostas">
         ${resultCopy.paragraphs.map((paragraph) => `<p>${paragraph}</p>`).join("")}
       </div>
-      <button class="btn quiz-cta" type="button" data-quiz-open-form>${getQuizOutcome(labelledAnswers) === "payment" ? "Garantir minha vaga agora" : "Enviar Informações"}</button>
+      <button class="btn quiz-cta" type="button" ${capturedLead ? "data-quiz-checkout" : "data-quiz-open-form"}>${goesToCheckout ? "Garantir minha vaga agora" : "Enviar Informações"}</button>
       <button class="quiz-restart" type="button" data-quiz-restart>Refazer quiz</button>
       <p class="quiz-card__note">A inscrição será conduzida pela equipe oficial. O workshop é educacional e exclusivo para médicos.</p>
     `;
@@ -474,6 +611,7 @@ function initQuiz() {
     const answerButton = event.target.closest("[data-quiz-answer]");
     const restartButton = event.target.closest("[data-quiz-restart]");
     const openFormButton = event.target.closest("[data-quiz-open-form]");
+    const checkoutButton = event.target.closest("[data-quiz-checkout]");
     const backResultButton = event.target.closest("[data-quiz-back-result]");
 
     if (startButton) {
@@ -491,6 +629,15 @@ function initQuiz() {
       return;
     }
 
+    if (checkoutButton) {
+      if (hasCapturedLead() && hasNotDoctorFlag()) {
+        openNotDoctorRegisteredPopup(checkoutButton);
+        return;
+      }
+      window.location.href = PAYMENT_URL;
+      return;
+    }
+
     if (backResultButton) {
       showLoadingThen(renderPreviousResult);
       return;
@@ -503,8 +650,13 @@ function initQuiz() {
     const answerKeys = ["Perfil", "Relação com transplante capilar", "Interesse principal", "Intenção de participação"];
     answers[answerKeys[currentQuestion]] = option.value;
 
+    if (question.id === "perfil" && option.value !== "Não médico(a)") {
+      clearNotDoctor();
+    }
+
     showLoadingThen(() => {
       if (option.end === "notDoctor") {
+        markNotDoctor();
         renderNotDoctor();
         return;
       }
@@ -517,6 +669,17 @@ function initQuiz() {
 
       renderFinal();
     });
+  });
+
+  document.addEventListener(LOAD_QUIZ_FROM_CTA_EVENT, () => {
+    renderIntro();
+    const quizSection = document.getElementById("quiz") || app;
+    quizSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => {
+      const startButton = app.querySelector("[data-quiz-start]");
+      if (startButton) startButton.focus({ preventScroll: true });
+      else card.focus({ preventScroll: true });
+    }, 80);
   });
 
 }
@@ -546,9 +709,9 @@ function createModalController({ modal, dialog, closeButton, initialFocus, onOpe
     );
   }
 
-  function open(origin) {
+  function open(origin, payload) {
     lastFocused = origin || document.activeElement;
-    if (onOpen) onOpen();
+    if (onOpen) onOpen(payload);
     modal.hidden = false;
     document.body.classList.add("is-modal-open");
     const firstFocusable =
@@ -644,6 +807,14 @@ function initLeadModal() {
     trigger.setAttribute("aria-haspopup", "dialog");
     trigger.addEventListener("click", (event) => {
       event.preventDefault();
+      if (hasCapturedLead()) {
+        if (hasNotDoctorFlag()) {
+          openNotDoctorRegisteredPopup(trigger);
+          return;
+        }
+        window.location.href = PAYMENT_URL;
+        return;
+      }
       leadModalController.open(trigger);
     });
   });
@@ -660,6 +831,8 @@ function initThankYouModal() {
   const dialog = modal.querySelector("[data-thank-you-dialog]");
   const closeButton = modal.querySelector("[data-thank-you-close]");
   const actionButton = modal.querySelector("[data-thank-you-close-button]");
+  const title = modal.querySelector("#thank-you-title");
+  const message = modal.querySelector(".lead-modal__message");
   if (!dialog || !closeButton) return;
 
   thankYouModalController = createModalController({
@@ -667,6 +840,17 @@ function initThankYouModal() {
     dialog,
     closeButton,
     initialFocus: "[data-thank-you-close-button]",
+    onOpen: (payload = {}) => {
+      if (title) title.textContent = payload.title || THANK_YOU_DEFAULT_TITLE;
+      if (message) message.textContent = payload.message || THANK_YOU_DEFAULT_MESSAGE;
+    },
+    onClose: () => {
+      if (!shouldLoadQuizAfterThankYouClose) return;
+      shouldLoadQuizAfterThankYouClose = false;
+      window.setTimeout(() => {
+        document.dispatchEvent(new CustomEvent(LOAD_QUIZ_FROM_CTA_EVENT));
+      }, 0);
+    },
   });
 
   if (actionButton) actionButton.addEventListener("click", thankYouModalController.close);
