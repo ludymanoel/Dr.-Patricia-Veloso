@@ -23,9 +23,6 @@ img { display: block; max-width: 100%; height: auto; }
 a { color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-.skip-link { position: absolute; left: -999px; top: 1rem; z-index: 20; background: var(--gold); color: var(--navy); padding: .75rem 1rem; border-radius: 999px; }
-.skip-link:focus { left: 1rem; }
-
 .announcement { padding: .62rem 1rem; text-align: center; background: var(--navy); color: var(--beige); font-size: .78rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .site-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .95rem clamp(1rem, 4vw, 4.5rem); background: rgba(251, 250, 247, .92); backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); }
 .brand { display: inline-flex; align-items: center; text-decoration: none; flex: 0 1 auto; min-width: 0; }

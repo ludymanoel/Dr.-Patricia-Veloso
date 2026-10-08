@@ -27,7 +27,7 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 - **Carrosséis acessíveis** (programa e registros): autoplay com botão **Pausar/Retomar** (`aria-pressed`), pausa em hover/focus, atualização de estado dos botões Anterior/Próximo e respeito a `prefers-reduced-motion`.
 - **Captação de lead**: o formulário nome/e-mail/telefone é compartilhado pelo quiz e pelo modal dos CTAs. Ao enviar, exibe a confirmação de que a equipe entrará em contato; com `LEAD_ENDPOINT` configurado em `script.js`, os dados são enviados por POST (ex.: Formspree/Google Apps Script).
 - **FAQ em acordeão**: `<details>` nativos com abertura exclusiva (abrir um fecha os demais).
-- **Navegação âncora** e skip-link para o conteúdo.
+- **Navegação âncora** entre as seções.
 
 ## Estrutura de pastas
 
@@ -86,7 +86,7 @@ Sem root directory adicional, a Vercel serve `index.html` da raiz.
 
 ## Requisitos e observações
 
-- **Acessibilidade**: foco visível, skip-link, `aria-live` no quiz, `aria-roledescription="carousel"` e rótulos nos controles, `aria-pressed` no Pausar/Retomar. As animações e o autoplay respeitam `prefers-reduced-motion`.
+- **Acessibilidade**: foco visível, `aria-live` no quiz, `aria-roledescription="carousel"` e rótulos nos controles, `aria-pressed` no Pausar/Retomar. As animações e o autoplay respeitam `prefers-reduced-motion`.
 - **Contraste**: paleta centralizada em CSS variables (navy `#1F2A44`, beige `#E8DCC8`, gold `#C6A75E`, texto dourado `#76570f`). Textos sobre fundo navy usam branco/beige para contraste AA.
 - **Navegadores**: requer navegadores modernos (CSS custom properties, `scroll-snap`, `details`, `aspect-ratio`, `dvh`).
 - **`_archive/`**: materiais internos e imagens órfãs; ignorado pelo Git.
