@@ -1,0 +1,20 @@
+arquivo	assunto	pre-header
+A-deixou-dados-sem-quiz/A1.html	Recebemos seu interesse no Workshop Long Hair FUE	Quatro perguntas, menos de 1 minuto: veja se o workshop faz sentido para o seu momento.
+A-deixou-dados-sem-quiz/A2.html	Long Hair FUE não é “FUE sem raspar”	O que muda quando o fio longo vira referência durante a cirurgia.
+A-deixou-dados-sem-quiz/A3.html	Antes de decidir: o que o workshop é (e o que não é)	Respostas diretas às dúvidas mais comuns sobre o Workshop Long Hair FUE.
+B-fez-quiz-nao-foi-ao-pagamento/B1-indicacao.html	Seu resultado no quiz: foco em indicação	Os blocos do programa que mais conversam com o que você respondeu.
+B-fez-quiz-nao-foi-ao-pagamento/B1-planejamento.html	Seu resultado no quiz: foco em planejamento	Os blocos do programa que mais conversam com o que você respondeu.
+B-fez-quiz-nao-foi-ao-pagamento/B1-extracao.html	Seu resultado no quiz: foco no manejo dos fios longos	Os blocos do programa que mais conversam com o que você respondeu.
+B-fez-quiz-nao-foi-ao-pagamento/B1-equipe.html	Seu resultado no quiz: foco em equipe e tempo	Os blocos do programa que mais conversam com o que você respondeu.
+B-fez-quiz-nao-foi-ao-pagamento/B1-casos.html	Seu resultado no quiz: foco em casos e limites	Os blocos do programa que mais conversam com o que você respondeu.
+B-fez-quiz-nao-foi-ao-pagamento/B2.html	Uma mega sessão não é apenas “mais FUE”	Como planejar milhares de unidades foliculares mantendo os fios longos.
+B-fez-quiz-nao-foi-ao-pagamento/B3.html	Vagas limitadas: os detalhes práticos de 13 de novembro	Data, local, o que está incluído e até quando vale o valor do 1º lote.
+C-foi-ao-pagamento-nao-pagou/C1.html	Sua vaga no 1º lote ainda não foi garantida	Seu link de pagamento continua ativo — e o valor do 1º lote também, por enquanto.
+C-foi-ao-pagamento-nao-pagou/C2-indicacao.html	Ficou alguma dúvida antes de confirmar sua vaga?	As respostas para o que mais perguntam antes da inscrição.
+C-foi-ao-pagamento-nao-pagou/C2-planejamento.html	Ficou alguma dúvida antes de confirmar sua vaga?	As respostas para o que mais perguntam antes da inscrição.
+C-foi-ao-pagamento-nao-pagou/C2-extracao.html	Ficou alguma dúvida antes de confirmar sua vaga?	As respostas para o que mais perguntam antes da inscrição.
+C-foi-ao-pagamento-nao-pagou/C2-equipe.html	Ficou alguma dúvida antes de confirmar sua vaga?	As respostas para o que mais perguntam antes da inscrição.
+C-foi-ao-pagamento-nao-pagou/C2-casos.html	Ficou alguma dúvida antes de confirmar sua vaga?	As respostas para o que mais perguntam antes da inscrição.
+C-foi-ao-pagamento-nao-pagou/C3.html	Último lembrete: o 1º lote encerra {{lote_encerra_em}}	Depois da virada, a mesma vaga custa mais.
+V-aviso-virada-de-lote/V1-para-regua-B.html	O 1º lote encerra {{lote_encerra_em}}	Depois disso, a inscrição passa para {{valor_proximo_lote}}.
+V-aviso-virada-de-lote/V1-para-regua-C.html	O 1º lote encerra {{lote_encerra_em}}	Depois disso, a inscrição passa para {{valor_proximo_lote}}.

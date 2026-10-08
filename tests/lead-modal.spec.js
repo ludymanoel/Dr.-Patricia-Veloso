@@ -1,8 +1,10 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 
-const THANK_YOU_MESSAGE = "As informações foram encaminhadas para a equipe do evento e em breve retornaremos o contato.";
-const LEAD_ENDPOINT_PATTERN = "**/macros/nexumag.com.br/s/**/exec";
+const THANK_YOU_MESSAGE =
+  "As informações foram registradas e o seu desconto já está disponível. A seguir, abriremos um quiz para que conheça melhor o Workshop.";
+const MODAL_LEAD_TITLE = "Complete os seus dados para garantir o valor do 1º lote";
+const LEAD_ENDPOINT_PATTERN = "**/macros/s/**/exec";
 const LEAD_CAPTURED_SESSION_KEY = "longHairFueLeadCaptured";
 
 const HERO_CTA = ".hero__actions [data-lead-modal-trigger]";
@@ -21,14 +23,12 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText("Complete seus dados para falar com a equipe");
+    await expect(dialog).toContainText(MODAL_LEAD_TITLE);
     await expect(dialog.getByLabel("Nome")).toBeVisible();
     await expect(dialog.getByLabel("E-mail")).toBeVisible();
     await expect(dialog.getByLabel("Telefone + DDD")).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Enviar Informações" })).toBeVisible();
-    await expect(dialog).toContainText(
-      "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.",
-    );
+    await expect(dialog).toContainText("Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop");
 
     // O foco inicial vai para o primeiro campo do formulário
     await expect(dialog.getByLabel("Nome")).toBeFocused();
@@ -98,7 +98,7 @@ test.describe("Modal de lead dos CTAs 'Garanta a sua vaga agora'", () => {
     await page.keyboard.press("Escape");
 
     await expect(page.locator("[data-thank-you-modal]")).toBeHidden();
-    await expect(page.locator("[data-quiz-progress-label]")).toHaveText("Início");
+    await expect(page.locator("[data-quiz-progress-label]")).toHaveCount(0);
     await expect(page.locator("[data-quiz-start]")).toBeVisible();
     await expect(page.locator("[data-quiz-start]")).toBeFocused();
   });

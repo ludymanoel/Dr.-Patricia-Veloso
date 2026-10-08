@@ -89,21 +89,23 @@ function initCarousels() {
 
 const PAYMENT_URL = "https://mpago.la/244hsWi";
 // Endpoint do Google Apps Script que recebe os leads na planilha do cliente.
-// Apps Script deve ser acionado por submit HTML em iframe oculto para evitar CORS.
+// Enviado por fetch com text/plain para evitar preflight CORS no Apps Script.
 const LEAD_ENDPOINT =
-  "https://script.google.com/a/macros/nexumag.com.br/s/AKfycbyJish5KU5nKRBT79Q77zj_130mmoKOlc7MNr-I9jPD_JvNxPt0DQxjgJE9orDQkPkpuA/exec";
-const LEAD_SUBMIT_IFRAME_ID = "lead-submit-frame";
-const LEAD_SUBMIT_TIMEOUT_MS = 3000;
+  "https://script.google.com/macros/s/AKfycbxo-Agl8ovuXKgdZpwnKL9af8jOBe7dcgkeeB6r1EPT2MVAuVrR4IJfPRNu1SlfafxYnw/exec";
+const LEAD_SUBMIT_TIMEOUT_MS = 8000;
 const LEAD_CAPTURED_SESSION_KEY = "longHairFueLeadCaptured";
+const LEAD_ID_SESSION_KEY = "longHairFueLeadId";
 const NOT_DOCTOR_SESSION_KEY = "longHairFueNotDoctor";
+const UTM_SESSION_KEY = "longHairFueUtms";
 const LOAD_QUIZ_FROM_CTA_EVENT = "longhair:load-quiz-from-cta";
 const LEAD_FORM_PRIVACY_TEXT =
-  "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop e para que a equipe possa entrar em contato.";
+  "Seus dados serão usados apenas para dar continuidade ao seu interesse no workshop";
 const LEAD_FORM_PAYMENT_DESCRIPTION = "Após o envio, você será direcionado para a página segura de pagamento.";
 const LEAD_FORM_LEAD_DESCRIPTION =
-  "Após o envio, a nossa equipe entrará em contato com você para dar continuidade ao seu interesse no workshop.";
+  "Após o envio, sua inscrição garantirá o valor promocional do primeiro lote aberto";
 const THANK_YOU_DEFAULT_TITLE = "Obrigado!";
-const THANK_YOU_DEFAULT_MESSAGE = "As informações foram encaminhadas para a equipe do evento e em breve retornaremos o contato.";
+const THANK_YOU_DEFAULT_MESSAGE =
+  "As informações foram registradas e o seu desconto já está disponível. A seguir, abriremos um quiz para que conheça melhor o Workshop.";
 const NOT_DOCTOR_REGISTERED_TITLE = "Informações registradas";
 const NOT_DOCTOR_REGISTERED_MESSAGE =
   "Suas informações já foram registradas. A equipe do evento entrará em contato em breve.";
@@ -114,8 +116,87 @@ const LEAD_FORM_FIELDS = [
   { name: "phone", label: "Telefone + DDD", type: "tel", autocomplete: "tel", inputmode: "tel" },
 ];
 
+// Fuso usado para registrar data/hora dos leads independentemente do fuso do
+// visitante. O Brasil não observa horário de verão desde 2019, então o horário
+// de Brasília fica fixo em UTC-03:00.
+const BRASILIA_TIME_ZONE = "America/Sao_Paulo";
+
+/**
+ * Extrai as partes (ano, mês, dia, hora, minuto, segundo) de uma data já
+ * convertida para o fuso informado, sem depender do fuso local do navegador.
+ */
+function getTimeZoneParts(date, timeZone) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const parts = {};
+  formatter.formatToParts(date).forEach((part) => {
+    if (part.type !== "literal") parts[part.type] = part.value;
+  });
+  return parts;
+}
+
+/**
+ * Diferença em minutos entre o fuso informado e UTC (positivo a leste).
+ * Ex.: America/Sao_Paulo retorna -180 (UTC-03:00).
+ */
+function getTimeZoneOffsetMinutes(date, timeZone) {
+  const parts = getTimeZoneParts(date, timeZone);
+  const asUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return Math.round((asUtc - date.getTime()) / 60000);
+}
+
+function formatOffset(minutes) {
+  const sign = minutes < 0 ? "-" : "+";
+  const absolute = Math.abs(minutes);
+  const hours = String(Math.floor(absolute / 60)).padStart(2, "0");
+  const mins = String(absolute % 60).padStart(2, "0");
+  return `${sign}${hours}:${mins}`;
+}
+
+function toDate(value) {
+  return value instanceof Date ? value : new Date(value);
+}
+
+/**
+ * Data/hora de Brasília em formato ISO com offset.
+ * Ex.: "2026-10-08T14:30:00-03:00".
+ */
+function brasiliaIso(date = new Date()) {
+  const value = toDate(date);
+  const parts = getTimeZoneParts(value, BRASILIA_TIME_ZONE);
+  const offset = formatOffset(getTimeZoneOffsetMinutes(value, BRASILIA_TIME_ZONE));
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}${offset}`;
+}
+
+/**
+ * Data/hora de Brasília em formato humano dd/MM/yyyy HH:mm.
+ * Ex.: "08/10/2026 14:30".
+ */
+function brasiliaLocal(date = new Date()) {
+  const parts = getTimeZoneParts(toDate(date), BRASILIA_TIME_ZONE);
+  return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`;
+}
+
 let leadCapturedInMemory = false;
 let notDoctorInMemory = false;
+let leadIdInMemory = null;
+let storedUtmsInMemory = {};
+let currentQuizAnswers = null;
 let shouldLoadQuizAfterThankYouClose = false;
 
 function getSessionStorage() {
@@ -147,6 +228,103 @@ function markLeadCaptured() {
   } catch (error) {
     // Fallback em memória já foi atualizado acima.
   }
+}
+
+function createFallbackUuid() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+    const random = Math.floor(Math.random() * 16);
+    const value = char === "x" ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+function getOrCreateLeadId() {
+  const storage = getSessionStorage();
+  if (storage) {
+    try {
+      const stored = storage.getItem(LEAD_ID_SESSION_KEY);
+      if (stored) return stored;
+    } catch (error) {
+      // Usa fallback em memória abaixo.
+    }
+  }
+
+  if (!leadIdInMemory) {
+    leadIdInMemory = window.crypto && typeof window.crypto.randomUUID === "function"
+      ? window.crypto.randomUUID()
+      : createFallbackUuid();
+  }
+
+  if (storage) {
+    try {
+      storage.setItem(LEAD_ID_SESSION_KEY, leadIdInMemory);
+    } catch (error) {
+      // Fallback em memória já foi atualizado acima.
+    }
+  }
+
+  return leadIdInMemory;
+}
+
+function captureUtms() {
+  const params = new URLSearchParams(window.location.search);
+  const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+  const foundUtms = utmKeys.reduce((acc, key) => {
+    const value = params.get(key);
+    if (value) acc[key] = value;
+    return acc;
+  }, {});
+  const storage = getSessionStorage();
+
+  if (Object.keys(foundUtms).length === 0) {
+    // Sem UTM na URL: mantém o que já existia (ou objeto vazio), sem inventar dados.
+    return getStoredUtms();
+  }
+
+  const existing = getStoredUtms();
+  const now = new Date();
+  // O carimbo reflete a primeira captura da sessão. Se novos UTMs chegarem
+  // depois, os valores são atualizados mas o carimbo original é preservado.
+  const mergedUtms = {
+    ...foundUtms,
+    utm_captured_at: existing.utm_captured_at || brasiliaIso(now),
+    utm_captured_at_local: existing.utm_captured_at_local || brasiliaLocal(now),
+  };
+
+  storedUtmsInMemory = mergedUtms;
+  if (storage) {
+    try {
+      storage.setItem(UTM_SESSION_KEY, JSON.stringify(mergedUtms));
+    } catch (error) {
+      // Fallback em memória já foi atualizado acima.
+    }
+  }
+  return mergedUtms;
+}
+
+function getStoredUtms() {
+  const storage = getSessionStorage();
+  if (storage) {
+    try {
+      const stored = storage.getItem(UTM_SESSION_KEY);
+      if (stored) return JSON.parse(stored) || {};
+    } catch (error) {
+      // Usa fallback em memória abaixo.
+    }
+  }
+
+  return storedUtmsInMemory;
+}
+
+function setCurrentQuizAnswers(answers) {
+  currentQuizAnswers = answers
+    ? {
+        Perfil: answers.Perfil || null,
+        "Relação com transplante capilar": answers["Relação com transplante capilar"] || null,
+        "Interesse principal": answers["Interesse principal"] || null,
+        "Intenção de participação": answers["Intenção de participação"] || null,
+      }
+    : null;
 }
 
 function hasNotDoctorFlag() {
@@ -270,66 +448,55 @@ function validateLeadForm(form) {
 }
 
 /**
- * Envia o lead para o Google Apps Script por submit HTML em iframe oculto.
- * Não usa fetch/JSON porque Apps Script costuma bloquear CORS nesse fluxo.
- * A Promise resolve no load do iframe ou por timeout para não travar popup/checkout.
+ * Envia o lead para o Google Apps Script em JSON, com Content-Type text/plain
+ * para evitar preflight. Retorna o JSON da automação quando disponível ou null
+ * para permitir fallback de UX/checkout sem travar o visitante.
  */
-function sendLead(form) {
+async function sendLead(form) {
+  const submittedFromModal = Boolean(form.closest("[data-lead-modal]"));
+  const mode = submittedFromModal ? "lead" : form.dataset.leadMode === "payment" ? "payment" : "lead";
+  const now = new Date();
   const payload = {
+    action: "lead",
+    lead_id: getOrCreateLeadId(),
     name: form.elements.name.value.trim(),
-    email: form.elements.email.value.trim(),
-    phone: form.elements.phone.value.trim(),
-    lead_mode: form.dataset.leadMode === "payment" ? "payment" : "lead",
-    page_url: window.location.href,
-    page_title: document.title,
-    submitted_at: new Date().toISOString(),
+    email: form.elements.email.value.trim().toLowerCase(),
+    phone: form.elements.phone.value.replace(/\D/g, ""),
+    source: submittedFromModal ? "modal" : "quiz",
+    mode,
+    quiz: submittedFromModal ? null : currentQuizAnswers,
+    utm: getStoredUtms(),
+    page: window.location.href,
+    user_agent: navigator.userAgent,
+    created_at: brasiliaIso(now),
+    created_at_local: brasiliaLocal(now),
+    timezone: BRASILIA_TIME_ZONE,
   };
 
-  return new Promise((resolve) => {
-    let iframe = document.getElementById(LEAD_SUBMIT_IFRAME_ID);
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.id = LEAD_SUBMIT_IFRAME_ID;
-      iframe.name = LEAD_SUBMIT_IFRAME_ID;
-      iframe.style.display = "none";
-      iframe.setAttribute("aria-hidden", "true");
-      iframe.tabIndex = -1;
-      document.body.appendChild(iframe);
-    }
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), LEAD_SUBMIT_TIMEOUT_MS);
 
-    const tempForm = document.createElement("form");
-    tempForm.method = "POST";
-    tempForm.action = LEAD_ENDPOINT;
-    tempForm.target = LEAD_SUBMIT_IFRAME_ID;
-    tempForm.style.display = "none";
-
-    Object.entries(payload).forEach(([name, value]) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value;
-      tempForm.appendChild(input);
+  try {
+    const response = await fetch(LEAD_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
-    let settled = false;
-    const cleanup = () => {
-      iframe.removeEventListener("load", handleLoad);
-      tempForm.remove();
-    };
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timeoutId);
-      cleanup();
-      resolve();
-    };
-    const handleLoad = () => finish();
-    const timeoutId = window.setTimeout(finish, LEAD_SUBMIT_TIMEOUT_MS);
+    if (!response.ok) return null;
 
-    iframe.addEventListener("load", handleLoad, { once: true });
-    document.body.appendChild(tempForm);
-    tempForm.submit();
-  });
+    try {
+      return await response.json();
+    } catch (error) {
+      return null;
+    }
+  } catch (error) {
+    console.warn("Não foi possível enviar o lead para o endpoint configurado.", error);
+    return null;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
 
 async function handleLeadSubmit(form) {
@@ -338,15 +505,11 @@ async function handleLeadSubmit(form) {
   const mode = form.dataset.leadMode === "payment" ? "payment" : "lead";
 
   // Ambos os modos passam pelo mesmo fluxo de captação do lead.
-  try {
-    await sendLead(form);
-  } catch (error) {
-    console.warn("Não foi possível enviar o lead para o endpoint configurado.", error);
-  }
+  const result = await sendLead(form);
   markLeadCaptured();
 
   if (mode === "payment") {
-    window.location.href = PAYMENT_URL;
+    window.location.href = result && result.checkout_url ? result.checkout_url : PAYMENT_URL;
     return;
   }
 
@@ -489,16 +652,18 @@ function initQuiz() {
   let currentQuestion = -1;
 
   function setProgress(label, percent) {
-    progressLabel.textContent = label;
-    progressBar.style.width = `${percent}%`;
+    // O rótulo é opcional: a barra continua funcionando quando ele não existe.
+    if (progressLabel) progressLabel.textContent = label;
+    if (progressBar) progressBar.style.width = `${percent}%`;
   }
 
   function renderIntro() {
     currentQuestion = -1;
     Object.keys(answers).forEach((key) => delete answers[key]);
+    setCurrentQuizAnswers(null);
     setProgress("Início", 0);
     card.innerHTML = `
-      <div class="quiz-card__kicker" data-quiz-kicker>Workshop Long Hair FUE</div>
+      <img class="quiz-card__kicker-img" data-quiz-kicker src="img/quiz.png" alt="Workshop Long Hair FUE" width="512" height="438" />
       <p class="quiz-card__text">Em menos de 1 minuto, responda perguntas objetivas sobre sua experiência e seus objetivos na técnica Long Hair FUE. O quiz ajuda você a entender se este workshop pode acelerar sua evolução — seja para começar com mais segurança ou para refinar planejamento, implantação e condução de casos avançados.</p>
       <div class="quiz-options">
         <button class="quiz-option" type="button" data-quiz-start>Responder o quiz</button>
@@ -562,12 +727,14 @@ function initQuiz() {
   }
 
   function getCurrentLabelledAnswers() {
-    return {
+    const labelledAnswers = {
       Perfil: answers["Perfil"],
       "Relação com transplante capilar": answers["Relação com transplante capilar"],
       "Interesse principal": answers["Interesse principal"],
       "Intenção de participação": answers["Intenção de participação"],
     };
+    setCurrentQuizAnswers(labelledAnswers);
+    return labelledAnswers;
   }
 
   function renderLeadForm() {
@@ -649,6 +816,7 @@ function initQuiz() {
     const option = question.options[Number(answerButton.dataset.quizAnswer)];
     const answerKeys = ["Perfil", "Relação com transplante capilar", "Interesse principal", "Intenção de participação"];
     answers[answerKeys[currentQuestion]] = option.value;
+    getCurrentLabelledAnswers();
 
     if (question.id === "perfil" && option.value !== "Não médico(a)") {
       clearNotDoctor();
@@ -793,7 +961,7 @@ function initLeadModal() {
       body.innerHTML = buildLeadFormMarkup({
         idPrefix: "modal-lead",
         mode: "lead",
-        title: "Complete seus dados para falar com a equipe",
+        title: "Complete os seus dados para garantir o valor do 1º lote",
         description: LEAD_FORM_LEAD_DESCRIPTION,
         submitLabel: "Enviar Informações",
       });
@@ -856,6 +1024,7 @@ function initThankYouModal() {
   if (actionButton) actionButton.addEventListener("click", thankYouModalController.close);
 }
 
+captureUtms();
 initQuiz();
 initCarousels();
 initLeadModal();
