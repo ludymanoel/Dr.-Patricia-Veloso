@@ -6,15 +6,14 @@
       Nome, e-mail e telefone digitados no quiz e no modal se perdem.
    2. O payload só manda name/email/phone -> não dá pra saber se a pessoa
       fez o quiz, o que respondeu, nem se foi para o pagamento.
-   3. O pagamento é um link fixo (mpago.la) -> não dá pra ligar o
+   3. O pagamento usa um link fixo -> não dá pra ligar o
       pagamento ao lead com segurança.
 
    O QUE ESTE PATCH FAZ:
    - Aponta o envio para o backend (Google Apps Script, pasta /apps-script).
    - Envia origem (quiz x modal), respostas do quiz, modo, UTMs e um lead_id.
-   - No modo "payment", o backend devolve um link de checkout do Mercado
-     Pago amarrado ao lead (external_reference = lead_id). Se algo falhar,
-     cai no link fixo antigo — a pessoa NUNCA fica sem conseguir pagar.
+   - No modo "payment", o backend apenas registra o lead; o frontend sempre
+    direciona para o checkout fixo da Kiwify após a captação.
 
    COMO APLICAR (dev):
    1. Troque as duas constantes LEAD_ENDPOINT e PAYMENT_URL pelas abaixo.
@@ -27,7 +26,7 @@
    ===================================================================== */
 
 const LEAD_ENDPOINT = "https://script.google.com/macros/s/COLE_AQUI_O_ID_DA_IMPLANTACAO/exec";
-const PAYMENT_URL = "https://mpago.la/244hsWi"; // fallback, se o backend não responder
+const PAYMENT_URL = "https://pay.kiwify.com.br/Kxl16ye";
 
 /* ---------- UTMs: guarda a origem do clique (anúncio, Instagram...) ---------- */
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
@@ -99,15 +98,14 @@ async function sendLead(form) {
    por:
 */
 async function exemploHandleLeadSubmit(form, mode) {
-  let result = null;
   try {
-    result = await sendLead(form);
+    await sendLead(form);
   } catch (err) {
     console.warn("Lead não enviado:", err); // a pessoa segue o fluxo mesmo assim
   }
 
   if (mode === "payment") {
-    window.location.href = (result && result.checkout_url) || PAYMENT_URL;
+    window.location.href = PAYMENT_URL;
     return;
   }
   // ...segue o fluxo atual (fecha modal / abre "Obrigado!")

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1F2A44" />
+    <title>Workshop Long Hair FUE | Dra. Patricia Veloso</title>
+    <meta name="description" content="Workshop presencial exclusivo para médicos no Rio de Janeiro." />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="stylesheet" href="/workshop-long-hair-fue-assets/styles.css" />
+    <style>
+      .carousel__viewport {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .carousel__viewport::-webkit-scrollbar {
+        display: none;
+      }
+      .button--purchase {
+        background-color: #1F2A44;
+        color: #fff;
+      }
+      .button--purchase:hover {
+        background-color: #111827;
+        color: #fff;
+      }
+      .button--purchase:focus-visible {
+        outline: 3px solid #1F2A44;
+        outline-offset: 4px;
+      }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: .75rem clamp(1rem, 4vw, 4rem);
+        border-bottom: 1px solid rgba(31, 42, 68, .14);
+        background: rgba(251, 250, 247, .94);
+        backdrop-filter: blur(16px);
+      }
+      .site-header .brand { flex: 0 1 auto; min-width: 0; }
+      .site-header .brand__logo { display: block; width: clamp(8.5rem, 24vw, 13rem); max-height: 3rem; object-fit: contain; }
+      .site-header .nav { display: flex; align-items: center; gap: clamp(.65rem, 1.8vw, 1.4rem); color: #1F2A44; font-size: .76rem; font-weight: 750; letter-spacing: .04em; }
+      .site-header .nav a { text-decoration: none; }
+      .site-header .nav a:hover { color: #76570f; }
+      .site-header .header-cta { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .6rem 1rem; border: 1px solid #1F2A44; border-radius: 999px; background: #1F2A44; color: #fff; font-weight: 800; text-align: center; text-decoration: none; }
+      .site-header .header-cta:hover { background: #111827; }
+      .site-header a:focus-visible { outline: 3px solid #C6A75E; outline-offset: 3px; }
+      .offer-faq { width: min(100% - 2rem, 52rem); margin: 3rem auto 0; }
+      .offer-faq h2 { color: #1F2A44; }
+      .offer-faq details { padding: 1rem 0; border-bottom: 1px solid rgba(31, 42, 68, .18); }
+      .offer-faq summary { color: #1F2A44; cursor: pointer; font-weight: 750; }
+      .offer-faq details p { line-height: 1.65; }
+      .footer { display: grid; gap: .5rem; text-align: center; }
+      .fold-purchase-cta { display: inline-flex; align-items: center; justify-content: center; width: fit-content; max-width: 100%; min-height: 3rem; margin: 1.5rem auto 0; padding: .8rem 1.25rem; border-radius: 999px; font-weight: 800; text-align: center; text-decoration: none; }
+      .fold--hero .fold-purchase-cta, .fold--experience .fold-purchase-cta, .fold--proof .fold-purchase-cta, .fold--venue .fold-purchase-cta { display: flex; }
+      .whatsapp-float { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 19; display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #1F2A44; color: #fff; box-shadow: 0 4px 18px rgba(17,24,39,.28); text-decoration: none; }
+      .whatsapp-float:hover { background: #111827; }
+      .whatsapp-float:focus-visible { outline: 3px solid #C6A75E; outline-offset: 4px; }
+      .whatsapp-float__icon { width: 1.8rem; height: 1.8rem; }
+      #promessa .reserved-media--video { position: relative; display: block; width: 100%; max-width: 38rem; min-height: 0; margin-inline: auto; padding: 0; overflow: hidden; aspect-ratio: 9 / 16; border: 0; background: none; }
+      #promessa .reserved-media--video iframe { position: absolute; inset: 0; display: block; width: 100%; max-width: none; height: 100%; border: 0; }
+      @media (max-width: 760px) {
+        .site-header { flex-wrap: wrap; gap: .6rem; padding-inline: 1rem; }
+        .site-header .brand__logo { width: clamp(8rem, 37vw, 11rem); max-height: 2.65rem; }
+        .site-header .nav { order: 3; flex: 1 0 100%; justify-content: space-between; gap: .35rem; padding-top: .45rem; border-top: 1px solid rgba(31, 42, 68, .1); font-size: clamp(.62rem, 2.4vw, .74rem); }
+         .site-header .header-cta { min-height: 2.55rem; padding: .5rem .75rem; font-size: .78rem; }
+         .whatsapp-float { right: max(.75rem, env(safe-area-inset-right)); bottom: max(.75rem, env(safe-area-inset-bottom)); width: 3.25rem; height: 3.25rem; }
+      }
+      @media (max-width: 360px) {
+        .site-header .brand__logo { width: 7.5rem; }
+        .site-header .header-cta { padding-inline: .55rem; font-size: .7rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Pular para o conteúdo</a>
+    <header class="site-header" aria-label="Cabeçalho">
+      <a class="brand" href="#promessa" aria-label="Dra. Patricia Veloso - início">
+        <img class="brand__logo" src="/workshop-long-hair-fue-assets/img/brand-horizontal.png" width="2640" height="473" alt="Dra. Patricia Veloso" />
+      </a>
+      <nav class="nav" aria-label="Navegação principal">
+        <a href="#promessa">Início</a>
+        <a href="#presencialidade">Presencial</a>
+        <a href="#resultados">Resultados</a>
+        <a href="#local">Local</a>
+        <a href="#primeiro-lote">Inscrição</a>
+      </nav>
+      <a class="header-cta" href="#primeiro-lote" data-lead-modal-trigger aria-haspopup="dialog">Garanta a sua vaga agora</a>
+    </header>
+    <main id="main">
+      <section class="fold fold--hero" id="promessa" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <img class="hero-logo" src="/workshop-long-hair-fue-assets/img/logo.png" width="320" height="283" alt="Logo do workshop Long Hair FUE" />
+          <h1 id="hero-title">Domine a técnica Long Hair FUE lidere o mercado premium do transplante capilar na sua região.</h1>
+          <p class="hero-subtitle">Um workshop presencial, exclusivo para médicos, no Rio de Janeiro.</p>
+        </div>
+        <div class="reserved-media--video">
+        <iframe src="https://player.vimeo.com/video/1238362022?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" width="1080" height="1920" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" title="Workshop Long Hair FUE - RIO"></iframe>
+      </div>
+        <div class="docente">
+          <figure class="docente__media"><img src="/workshop-long-hair-fue-assets/img/teacher.jpg" width="933" height="1400" loading="lazy" alt="Dra. Patricia Veloso, docente do workshop Long Hair FUE" /></figure>
+          <div class="docente__content">
+            <p class="eyebrow eyebrow--docente">Quem conduzirá o workshop</p>
+            <h2>Dra. Patricia Veloso</h2>
+            <p>Cirurgiã Plástica, CRM-MG 50766 e RQE 34013, a Dra. Patricia Veloso é pioneira mundial em mega e giga sessões com a técnica Long Hair FUE, com atuação internacional em congressos, workshops médicos e discussões técnicas sobre casos de alta complexidade, mostrando casuística de pacientes operados em um único dia com 3000 a 4000 unidades foliculares de fios longos, feito até então inédito no mundo. Foi também convidada a demonstrar a técnica Long Hair FUE durante as cirurgias ao vivo, para médicos de diversos países.</p>
+            <p>Neste workshop presencial, ela compartilha o raciocínio por trás do planejamento, da extração, da organização da equipe e da implantação com fios longos. Neste encontro, ela não apresentará apenas uma sequência de etapas. Vai abrir todos os segredos e o raciocínio usado para planejar, executar e coordenar casos em que o fio longo altera a cirurgia.</p>
+          </div>
+        </div>
+        <a class="button button--purchase fold-purchase-cta" href="https://pay.kiwify.com.br/Kxl16ye" target="_blank" rel="noopener noreferrer">GARANTIR MINHA VAGA AGORA - INGRESSO 1 LOTE</a>
+      </section>
+
+      <section class="fold fold--experience" id="presencialidade" aria-labelledby="experience-title">
+        <div class="section-heading">
+          <h2 id="experience-title">O Valor da Presencialidade e a Técnica Long Hair FUE</h2>
+        </div>
+        <div class="experience-layout">
+          <div class="experience-copy">
+            <p>Todos os segredos e detalhes da técnica Long Hair FUE explicadas pela pioneira no assunto. Uma experiência única que fará o seu nível subir, com resultados imediatos quabrando qualquer objeção que os seus pacientes possam ter com implante capilar.</p>
+          </div>
+          <div class="teaching-gallery" aria-label="Imagens de ensino médico">
+            <img src="/workshop-long-hair-fue-assets/img/procedure.png" width="1200" height="1426" loading="lazy" alt="Procedimento de transplante capilar Long Hair FUE durante o workshop" />
+          </div>
+        </div>
+        <a class="button button--purchase fold-purchase-cta" href="https://pay.kiwify.com.br/Kxl16ye" target="_blank" rel="noopener noreferrer">GARANTIR MINHA VAGA AGORA - INGRESSO 1 LOTE</a>
+      </section>
+
+      <section class="fold fold--proof" id="resultados" aria-labelledby="results-title">
+        <div class="section-heading section-heading--center">
+          <h2 id="results-title">Resultados que transformam pacientes e lotam a agenda de médicos.</h2>
+        </div>
+        <div class="carousel" role="group" aria-roledescription="carrossel" aria-label="Imagens de antes e depois" data-carousel>
+          <div class="carousel__viewport" role="group" aria-label="Rolagem horizontal das imagens de antes e depois" tabindex="0" data-carousel-viewport>
+            <div class="carousel__track">
+              <figure><img src="/workshop-long-hair-fue-assets/img/antesdepois1.jpg" width="935" height="862" loading="lazy" alt="Imagem de antes e depois de caso Long Hair FUE" /></figure>
+              <figure><img src="/workshop-long-hair-fue-assets/img/antesdepois2.jpg" width="968" height="860" loading="lazy" alt="Imagem de antes e depois de caso Long Hair FUE" /></figure>
+              <figure><img src="/workshop-long-hair-fue-assets/img/antesdepois3.jpg" width="918" height="960" loading="lazy" alt="Imagem de antes e depois de caso Long Hair FUE" /></figure>
+            </div>
+          </div>
+        </div>
+        <a class="button button--purchase fold-purchase-cta" href="https://pay.kiwify.com.br/Kxl16ye" target="_blank" rel="noopener noreferrer">GARANTIR MINHA VAGA AGORA - INGRESSO 1 LOTE</a>
+      </section>
+
+      <section class="fold fold--venue" id="local" aria-labelledby="venue-title">
+        <div class="venue-panel">
+          <div class="venue-copy">
+            <h2 id="venue-title">Centro de Convenções Vogue Square</h2>
+            <address>Av. das Américas, 8585 - Barra da Tijuca - Rio de Janeiro/RJ</address>
+            <img class="reserved-media reserved-media--venue" src="workshop-long-hair-fue-assets/img/centro_convencao.jfif" width="1200" height="900" alt="Fachada do Vogue Square, com a identificação do local visível" loading="lazy" decoding="async">
+            <dl class="event-details">
+              <div><dt>Data</dt><dd>13 de novembro de 2026</dd></div>
+              <div><dt>Horário</dt><dd>08h–18h</dd></div>
+            </dl>
+            <p>O nosso workshop será realizado no Centro de Convenções Vogue Square, um dos espaços de eventos mais modernos e sofisticados da Barra da Tijuca, Rio de Janeiro. Situado dentro de um complexo multiuso de alto padrão, o local combina uma infraestrutura tecnológica de ponta com o conforto de um polo que reúne gastronomia renomada, segurança e bem-estar.</p>
+            <h3>Diferenciais do Espaço</h3>
+            <ul>
+              <li>Ambiente Premium e Climatizado: Salão moderno com isolamento acústico e sistema de climatização planejado para garantir o máximo conforto durante toda a jornada de aprendizado.</li>
+              <li>Acessibilidade Completa: O espaço conta com rampas, elevadores e total adaptação para pessoas com deficiência (PCD).</li>
+              <li>Conectividade: Wi-Fi de alta velocidade disponível para que você possa acompanhar os materiais e interagir em tempo real.</li>
+            </ul>
+          </div>
+        </div>
+        <a class="button button--purchase fold-purchase-cta" href="https://pay.kiwify.com.br/Kxl16ye" target="_blank" rel="noopener noreferrer">GARANTIR MINHA VAGA AGORA - INGRESSO 1 LOTE</a>
+      </section>
+
+      <section class="fold fold--offer" id="primeiro-lote" aria-labelledby="offer-title">
+        <div class="offer-card">
+          <h2 id="offer-title">Garanta sua vaga no Primeiro Lote (Vagas Limitadas).</h2>
+          <img class="offer-included" src="workshop-long-hair-fue-assets/img/incluso.png" width="1186" height="1326" alt="Itens incluídos no Workshop Long Hair FUE" loading="lazy" decoding="async" style="display:block;width:100%;height:auto;max-width:100%;" />
+          <a class="button button--purchase" href="https://pay.kiwify.com.br/Kxl16ye">GARANTA A SUA VAGA NO 1° LOTE</a>
+        </div>
+        <section class="offer-faq" id="faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">Perguntas frequentes</h2>
+          <details><summary>O workshop é exclusivo para médicos?</summary><p>Sim. O ingresso e o credenciamento são destinados a médicos.</p></details>
+          <details><summary>Preciso já trabalhar com transplante capilar?</summary><p>Não necessariamente. Muitos dos alunos da Dra. Patricia Veloso iniciaram a sua carreira no transplante capilar após realizar algum dos seus treinamentos. Médicos que já operam FUE terão maior profundidade técnica; quem está avaliando entrar na área compreenderá fundamentos e requisitos. O workshop não habilita, sozinho, a executar a técnica.</p></details>
+          <details><summary>O evento terá prática em paciente?</summary><p>Não. O workshop é dedicado ao conteúdo técnico, planejamento e discussão de casos. Eventuais experiências práticas têm formato, critérios e vagas próprias. Consulte a nossa equipe para maiores informações.</p></details>
+          <details><summary>Long Hair FUE é a mesma coisa que No-Shave FUE?</summary><p>Não. No Long Hair FUE, as unidades foliculares são manejadas mantendo os fios longos, o que preserva referências visuais específicas, possibilitando ajustes em tempo real. A classificação e os limites serão detalhados no evento.</p></details>
+          <details><summary>Vou receber certificado?</summary><p>Sim. Os certificados de participação serão entregues a todos os participantes do evento.</p></details>
+          <details><summary>O ingresso inclui hospedagem e deslocamento?</summary><p>Não. As despesas são de responsabilidade do participante.</p></details>
+          <details><summary>Posso transferir a minha inscrição?</summary><p>Não. A inscrição para o Workshop Long Hair FUE é pessoal e intransferível.</p></details>
+          <details><summary>Posso cancelar a minha inscrição?</summary><p>Solicitações de cancelamento realizadas em até 7 dias corridos após a compra, desde que feitas com antecedência mínima de 48 horas do início do evento, terão direito ao reembolso integral, conforme aplicável à legislação vigente.</p><p>Após o prazo legal de arrependimento, a inscrição será considerada confirmada e não haverá reembolso em caso de desistência ou não comparecimento.</p><p>Como solicitar: Pedidos de cancelamento deverão ser encaminhados exclusivamente pelo canal oficial de atendimento informado na inscrição, contendo nome completo, CPF e dados da compra.</p></details>
+          <details><summary>Como faço a inscrição?</summary><p>Clique nos botões da página para acessar a seção de inscrição e acompanhar as orientações oficiais sobre disponibilidade e próximos passos.</p></details>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Dra. Patricia Veloso — Cirurgiã Plástica | CRM-MG 50766 | RQE 34013</p>
+      <p>Workshop Long Hair FUE | Rio de Janeiro | 13 de novembro de 2026</p>
+      <p>CNPJ: 34.748.604/0001-32</p>
+      <p>Os dados e materiais desta página destinam-se exclusivamente à campanha de divulgação do Workshop Long Hair FUE. A reprodução ou utilização não autorizada de textos, elementos criativos ou imagens poderá violar direitos autorais ou direitos de imagem e sujeitar os responsáveis às medidas cabíveis nos termos da legislação aplicável.</p>
+    </footer>
+
+    <a class="whatsapp-float" href="https://wa.me/553884213318" target="_blank" rel="noopener noreferrer" aria-label="Falar com a equipe pelo WhatsApp" title="Falar com a equipe pelo WhatsApp">
+      <svg class="whatsapp-float__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.06 0C5.53 0 .22 5.31.22 11.84c0 2.09.55 4.13 1.59 5.92L.12 24l6.38-1.67a11.82 11.82 0 0 0 5.56 1.42h.01c6.53 0 11.84-5.31 11.84-11.84 0-3.17-1.23-6.14-3.41-8.41Zm-8.43 18.2h-.01a9.82 9.82 0 0 1-5.01-1.37l-.36-.21-3.79.99 1.01-3.7-.23-.38a9.83 9.83 0 1 1 8.39 4.67Zm5.4-7.36c-.3-.15-1.76-.87-2.03-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.79-1.67-2.09-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.21 5.09 4.5.71.31 1.27.49 1.7.63.72.23 1.38.2 1.9.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" fill="currentColor" /></svg>
+    </a>
+
+    <div class="lead-modal" data-lead-modal hidden>
+      <div class="lead-modal__backdrop" data-lead-modal-backdrop></div>
+      <div class="lead-modal__dialog" data-lead-modal-dialog role="dialog" aria-modal="true" aria-label="Formulário para inscrição no workshop">
+        <button class="lead-modal__close" type="button" data-lead-modal-close aria-label="Fechar formulário"><span aria-hidden="true">×</span></button>
+        <div class="lead-modal__body" data-lead-modal-body></div>
+      </div>
+    </div>
+
+    <script src="/workshop-long-hair-fue-assets/script.js" defer></script>
+  </body>
+</html>

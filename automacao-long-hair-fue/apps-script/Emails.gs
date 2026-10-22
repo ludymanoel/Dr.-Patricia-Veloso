@@ -449,7 +449,7 @@ const TEMPLATES = {
       preheader: 'Seu link de pagamento continua ativo — e o valor do ' + LOTE.atual + ' também, por enquanto.',
       body:
         p_('Olá, ' + c.nome + ',')
-        + p_('Você respondeu o quiz, indicou que quer participar e chegou à página de pagamento — mas a sua inscrição ainda não foi confirmada.')
+        + p_('Você iniciou sua inscrição e chegou à página de pagamento, mas a sua inscrição ainda não foi confirmada.')
         + alerta_(c, 'lote')
         + p_('Se foi só uma interrupção, o link continua ativo:')
         + cta_('Garantir minha vaga no ' + LOTE.atual, c.link_pagamento)
@@ -474,7 +474,7 @@ const TEMPLATES = {
           ['E se eu precisar cancelar?', 'Cancelamentos em até 7 dias corridos após a compra, feitos com pelo menos 48 horas de antecedência do evento, têm reembolso integral.'],
           ['Hospedagem está incluída?', 'Não. Hospedagem e deslocamento ficam por conta do participante.'],
         ])
-        + p_('No quiz, você indicou interesse em <strong>' + it.label + '</strong> — um dos temas do programa: ' + it.topicos[0].charAt(0).toLowerCase() + it.topicos[0].slice(1) + '.')
+        + p_('O Workshop Long Hair FUE reúne conteúdo técnico, planejamento e discussão de casos para médicos que querem aprofundar sua prática.')
         + alerta_(c, 'vagas')
         + cta_('Concluir minha inscrição no ' + LOTE.atual, c.link_pagamento)
         + assinatura_(),

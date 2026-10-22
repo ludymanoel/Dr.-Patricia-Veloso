@@ -3,16 +3,11 @@
  * ---------------------------------------------------------------------
  * Roda dentro de uma Planilha Google (Extensões > Apps Script). Faz 4 coisas:
  *   1. Recebe os leads do site (doPost) e salva na aba "Leads".
- *   2. Para quem vai ao pagamento, cria um checkout do Mercado Pago amarrado
- *      ao lead (external_reference = lead_id).
- *   3. A cada 30 min: confere pagamentos aprovados no Mercado Pago e marca
- *      quem pagou como "pago" (sai de todas as sequências).
- *   4. A cada 30 min: envia o próximo e-mail da sequência de cada lead.
+ *   2. Para quem vai ao pagamento, direciona para o checkout fixo Kiwify.
+ *   3. A cada 30 min: envia o próximo e-mail da sequência de cada lead.
  *
  * SEGMENTOS
- *   A = deixou nome/e-mail/telefone no modal e NÃO respondeu o quiz
- *   B = respondeu o quiz e NÃO foi para o pagamento (talvez/avaliando/formação)
- *   C = respondeu o quiz, foi para o pagamento e NÃO pagou
+ *   C = iniciou o checkout e NÃO pagou
  *   PAGO = sai de tudo · NAO_MEDICO = não recebe sequência de venda
  *
  * INSTALAÇÃO: veja LEIA-ME.md
@@ -24,12 +19,7 @@ const CONFIG = {
   TIMEZONE: 'America/Sao_Paulo',
 
   SITE_URL: 'https://www.drapatriciaveloso.com.br/',
-  PAYMENT_URL_FALLBACK: 'https://mpago.la/244hsWi',
-
-  // Mercado Pago — confira se batem com o link de pagamento atual
-  ITEM_TITLE: 'Workshop Long Hair FUE — 1º lote',
-  PRICE: 496.0,
-  MIN_AMOUNT_MATCH: 400, // pagamento achado só pelo e-mail precisa ter pelo menos este valor
+  PAYMENT_URL_FALLBACK: 'https://pay.kiwify.com.br/Kxl16ye',
 
   // Remetente
   SENDER: 'gmail', // 'gmail' (MailApp, até 100/dia em conta comum ou 1.500/dia no Workspace) ou 'brevo'
@@ -43,19 +33,13 @@ const CONFIG = {
   STOP_SENDING_AT: '2026-11-12T20:00:00-03:00', // véspera do evento
   MAX_PER_RUN: 80,
 
-  // Aviso de virada de lote (e-mail V1). Só dispara se LOTE.fim estiver preenchido em Emails.gs.
-  LOTE_AVISO_SEGMENTOS: ['B', 'C'],  // inclua 'A' para avisar também quem não fez o quiz
-  LOTE_AVISO_INICIO_H: 36,            // começa a enviar 36 h antes da virada
-  LOTE_AVISO_FIM_H: 1,                // para de enviar 1 h antes da virada
 };
 
 /** Atraso de cada e-mail em horas, contado a partir do envio anterior (o 1º conta da entrada do lead). */
 const SEQUENCES = {
-  A: [{ id: 'A1', delayHours: 1 }, { id: 'A2', delayHours: 48 }, { id: 'A3', delayHours: 96 }],
-  B: [{ id: 'B1', delayHours: 1 }, { id: 'B2', delayHours: 48 }, { id: 'B3', delayHours: 96 }],
   C: [{ id: 'C1', delayHours: 2 }, { id: 'C2', delayHours: 22 }, { id: 'C3', delayHours: 48 }],
 };
-const SEGMENT_RANK = { A: 1, B: 2, C: 3 };
+const C_EMAIL_IDS = ['C1', 'C2', 'C3'];
 
 const HEADERS = [
   'lead_id', 'created_at', 'updated_at', 'name', 'email', 'phone',
@@ -85,14 +69,9 @@ function doPost(e) {
 
     const lead = upsertLead_(Object.assign({}, data, { email: email, name: name }));
 
-    let checkoutUrl = null;
-    if (data.mode === 'payment' && lead.status !== 'pago') {
-      checkoutUrl = createCheckout_(lead);
-      if (checkoutUrl) {
-        lead.checkout_url = checkoutUrl;
-        writeRow_(getSheet_(CONFIG.SHEET_LEADS), lead);
-      }
-    }
+    const checkoutUrl = data.mode === 'payment' && lead.status !== 'pago'
+      ? CONFIG.PAYMENT_URL_FALLBACK
+      : null;
     return json_({ ok: true, lead_id: lead.lead_id, checkout_url: checkoutUrl });
   } catch (err) {
     console.error('doPost', err);
@@ -133,13 +112,21 @@ function upsertLead_(data) {
     if (utm[k] && !lead[k]) lead[k] = utm[k];
   });
 
-  // Recalcula o segmento. Se subiu (A -> B -> C), reinicia a sequência certa.
+  if (incomingMode === 'payment' && lead.status !== 'pago') {
+    lead.checkout_url = CONFIG.PAYMENT_URL_FALLBACK;
+  } else if (isLegacyCheckoutUrl_(lead.checkout_url)) {
+    lead.checkout_url = '';
+  }
+
+  // Recalcula o segmento. Apenas leads que chegaram ao pagamento entram em C.
   const newSegment = segmentFor_(lead);
   const oldSegment = lead.segment;
-  const canMove = lead.status === 'ativo' || lead.status === 'concluido';
+  const canMove = lead.status !== 'pago' && lead.status !== 'descadastrado'
+    && (lead.status === 'ativo' || lead.status === 'concluido'
+      || (incomingMode === 'payment' && newSegment === 'C'));
   if (canMove && newSegment !== oldSegment) {
-    const upgraded = isNew || !SEGMENT_RANK[oldSegment] || (SEGMENT_RANK[newSegment] || 0) > SEGMENT_RANK[oldSegment];
-    if (upgraded) {
+    const upgraded = isNew || newSegment === 'C' || oldSegment !== 'C';
+    if (upgraded && (newSegment === 'C' || oldSegment !== 'C')) {
       lead.segment = newSegment;
       lead.status = 'ativo';
       lead.step = 0;
@@ -154,90 +141,33 @@ function upsertLead_(data) {
 
 function segmentFor_(lead) {
   if (lead.status === 'pago') return 'PAGO';
-  if (/^n[aã]o m[eé]dic/i.test(lead.perfil || '')) return 'NAO_MEDICO';
-  if (lead.source !== 'quiz') return 'A';
+  // O checkout é a única porta de entrada; checkout_url pode ser nulo no fallback.
   if (lead.mode === 'payment') return 'C';
-  return 'B';
+  if (/^n[aã]o m[eé]dic/i.test(lead.perfil || '')) return 'NAO_MEDICO';
+  return 'INELIGIVEL';
 }
 
-/* =====================================================================
-   2. MERCADO PAGO — checkout por lead + conferência de pagamentos
-   ===================================================================== */
-
-function createCheckout_(lead) {
-  const token = prop_('MP_ACCESS_TOKEN');
-  if (!token) return null;
-  const body = {
-    items: [{ id: 'workshop-lhf-2026', title: CONFIG.ITEM_TITLE, quantity: 1, unit_price: CONFIG.PRICE, currency_id: 'BRL' }],
-    payer: { name: lead.name, email: lead.email },
-    external_reference: lead.lead_id,
-    back_urls: {
-      success: CONFIG.SITE_URL + '?pagamento=aprovado',
-      pending: CONFIG.SITE_URL + '?pagamento=pendente',
-      failure: CONFIG.SITE_URL + '#inscricao',
-    },
-    auto_return: 'approved',
-    statement_descriptor: 'LONGHAIRFUE',
-  };
-  const res = UrlFetchApp.fetch('https://api.mercadopago.com/checkout/preferences', {
-    method: 'post',
-    contentType: 'application/json',
-    headers: { Authorization: 'Bearer ' + token },
-    payload: JSON.stringify(body),
-    muteHttpExceptions: true,
-  });
-  if (res.getResponseCode() >= 300) {
-    console.error('MP preference', res.getResponseCode(), res.getContentText());
-    return null;
-  }
-  return JSON.parse(res.getContentText()).init_point || null;
+function isLegacyCheckoutUrl_(url) {
+  return /mercadopago\.com|mercadolivre\.com|pag\.ae|pref_id=/i.test(String(url || ''));
 }
 
-/** Busca pagamentos aprovados dos últimos 10 dias e marca os leads como pagos. */
-function syncPayments() {
-  const token = prop_('MP_ACCESS_TOKEN');
-  if (!token) return;
-
-  const end = new Date();
-  const begin = new Date(end.getTime() - 10 * 24 * 3600 * 1000);
-  const iso = function (d) { return Utilities.formatDate(d, 'GMT', "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); };
-
-  const payments = [];
-  for (let offset = 0; offset < 1000; offset += 50) {
-    const url = 'https://api.mercadopago.com/v1/payments/search'
-      + '?status=approved&sort=date_created&criteria=desc&range=date_created'
-      + '&begin_date=' + encodeURIComponent(iso(begin))
-      + '&end_date=' + encodeURIComponent(iso(end))
-      + '&limit=50&offset=' + offset;
-    const res = UrlFetchApp.fetch(url, { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true });
-    if (res.getResponseCode() >= 300) { console.error('MP search', res.getContentText()); break; }
-    const results = JSON.parse(res.getContentText()).results || [];
-    payments.push.apply(payments, results);
-    if (results.length < 50) break;
-  }
-  if (!payments.length) return;
-
+/** Rode UMA vez para substituir links antigos de Mercado Pago/PagBank na aba Leads. */
+function limparCheckoutAntigo() {
   const sheet = getSheet_(CONFIG.SHEET_LEADS);
   const rows = readRows_(sheet);
-  const byId = {};
-  const byEmail = {};
-  rows.forEach(function (r) { byId[r.lead_id] = r; byEmail[r.email] = r; });
-
-  payments.forEach(function (p) {
-    const payerEmail = String((p.payer && p.payer.email) || '').toLowerCase();
-    let lead = p.external_reference ? byId[p.external_reference] : null;
-    // Link fixo antigo não tem external_reference: casa pelo e-mail + valor mínimo.
-    if (!lead && payerEmail && Number(p.transaction_amount) >= CONFIG.MIN_AMOUNT_MATCH) lead = byEmail[payerEmail];
-    if (!lead || lead.status === 'pago') return;
-
-    lead.status = 'pago';
-    lead.segment = 'PAGO';
-    lead.paid_at = p.date_approved ? new Date(p.date_approved) : new Date();
-    lead.payment_id = String(p.id);
-    lead.next_send_at = '';
+  const alterados = [];
+  rows.forEach(function (lead) {
+    if (!isLegacyCheckoutUrl_(lead.checkout_url)) return;
+    lead.checkout_url = lead.mode === 'payment' && lead.status !== 'pago'
+      ? CONFIG.PAYMENT_URL_FALLBACK
+      : '';
     lead.updated_at = new Date();
+    lead.notes = (lead.notes ? lead.notes + ' | ' : '') + 'checkout_url antigo substituído';
     writeRow_(sheet, lead);
+    alterados.push(lead.email);
   });
+  console.log('Leads corrigidos: ' + alterados.length + (alterados.length ? ' — ' + alterados.join(', ') : ''));
+  return alterados.length;
 }
 
 /* =====================================================================
@@ -245,8 +175,6 @@ function syncPayments() {
    ===================================================================== */
 
 function processQueue() {
-  try { syncPayments(); } catch (err) { console.error('syncPayments', err); }
-
   const now = new Date();
   if (now > new Date(CONFIG.STOP_SENDING_AT)) return;
   const hour = Number(Utilities.formatDate(now, CONFIG.TIMEZONE, 'H'));
@@ -257,13 +185,15 @@ function processQueue() {
   try {
     const sheet = getSheet_(CONFIG.SHEET_LEADS);
     const rows = readRows_(sheet);
+    quarantineLegacySegments_(sheet, rows);
     let budget = CONFIG.MAX_PER_RUN;
     if (CONFIG.SENDER === 'gmail') budget = Math.min(budget, MailApp.getRemainingDailyQuota());
 
     for (let i = 0; i < rows.length && budget > 0; i++) {
       const lead = rows[i];
-      const seq = SEQUENCES[lead.segment];
-      if (lead.status !== 'ativo' || !seq) continue;
+      const seq = lead.segment === 'C' ? SEQUENCES.C : null;
+      // Somente leads que efetivamente iniciaram o checkout entram na régua C.
+      if (lead.status !== 'ativo' || lead.mode !== 'payment' || !seq) continue;
       const due = toDate_(lead.next_send_at);
       if (!due || due > now) continue;
 
@@ -271,6 +201,7 @@ function processQueue() {
       if (step >= seq.length) { lead.status = 'concluido'; writeRow_(sheet, lead); continue; }
 
       const emailId = seq[step].id;
+      if (C_EMAIL_IDS.indexOf(emailId) < 0) continue;
       let ok = true;
       let error = '';
       try {
@@ -296,41 +227,25 @@ function processQueue() {
       budget--;
     }
 
-    // Aviso de virada de lote: um envio por lead por lote, para quem ainda não pagou.
-    if (budget > 0 && avisoLoteAberto_(now)) {
-      for (let i = 0; i < rows.length && budget > 0; i++) {
-        const lead = rows[i];
-        if (CONFIG.LOTE_AVISO_SEGMENTOS.indexOf(lead.segment) < 0) continue;
-        if (lead.status !== 'ativo' && lead.status !== 'concluido') continue;
-        if (lead.aviso_lote === LOTE.atual) continue;
-        const ultimo = toDate_(lead.last_sent_at);
-        if (ultimo && now - ultimo < 6 * 3600 * 1000) continue; // não manda dois e-mails colados
-
-        let ok = true;
-        let error = '';
-        try { sendEmail_(lead, 'V1'); } catch (err) { ok = false; error = String(err && err.message || err); }
-        log_([new Date(), lead.lead_id, lead.email, 'V1', lead.segment, ok, error]);
-        if (!ok) continue;
-        lead.aviso_lote = LOTE.atual;
-        lead.last_sent_at = new Date();
-        lead.updated_at = new Date();
-        writeRow_(sheet, lead);
-        budget--;
-      }
-    }
   } finally {
     lock.releaseLock();
   }
 }
 
-function avisoLoteAberto_(now) {
-  if (!LOTE.fim) return false;
-  const fim = new Date(LOTE.fim).getTime();
-  const t = now.getTime();
-  return t >= fim - CONFIG.LOTE_AVISO_INICIO_H * 3600 * 1000 && t <= fim - CONFIG.LOTE_AVISO_FIM_H * 3600 * 1000;
+/** Desativa registros antigos das réguas removidas sem apagar dados históricos. */
+function quarantineLegacySegments_(sheet, rows) {
+  rows.forEach(function (lead) {
+    if (lead.segment !== 'A' && lead.segment !== 'B') return;
+    lead.status = 'excluido';
+    lead.next_send_at = '';
+    lead.updated_at = new Date();
+    lead.notes = 'Sequências A/B desativadas após remoção do quiz.';
+    writeRow_(sheet, lead);
+  });
 }
 
 function sendEmail_(lead, emailId) {
+  if (C_EMAIL_IDS.indexOf(emailId) < 0) throw new Error('E-mail desativado: ' + emailId);
   const msg = renderEmail(emailId, buildContext_(lead, emailId));
   if (CONFIG.SENDER === 'brevo') return sendViaBrevo_(lead, msg);
   MailApp.sendEmail({
@@ -368,7 +283,7 @@ function buildContext_(lead, emailId) {
     const q = 'utm_source=email&utm_medium=automacao&utm_campaign=lhf_' + emailId.toLowerCase();
     return url + (url.indexOf('?') >= 0 ? '&' : '?') + q + (hash || '');
   };
-  const linkPagamento = lead.checkout_url || CONFIG.PAYMENT_URL_FALLBACK;
+  const linkPagamento = CONFIG.PAYMENT_URL_FALLBACK;
   const linkInscricao = tag(CONFIG.SITE_URL, '#inscricao');
   return {
     agora: new Date(),
@@ -382,7 +297,7 @@ function buildContext_(lead, emailId) {
     link_quiz: tag(CONFIG.SITE_URL, '#quiz'),
     link_programa: tag(CONFIG.SITE_URL, '#programa'),
     link_inscricao: tag(CONFIG.SITE_URL, '#inscricao'),
-    link_pagamento: lead.checkout_url || CONFIG.PAYMENT_URL_FALLBACK,
+    link_pagamento: CONFIG.PAYMENT_URL_FALLBACK,
     link_sair: unsubUrl_(lead),
   };
 }
@@ -432,20 +347,20 @@ function setup() {
   if (!props.getProperty('UNSUB_SECRET')) props.setProperty('UNSUB_SECRET', Utilities.getUuid() + Utilities.getUuid());
 
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (t.getHandlerFunction() === 'processQueue') ScriptApp.deleteTrigger(t);
+    ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger('processQueue').timeBased().everyMinutes(30).create();
 }
 
-/** Envia os 9 e-mails para um endereço de teste (troque abaixo) com dados de exemplo. */
+/** Envia somente C1, C2 e C3 para um endereço de teste (troque abaixo). */
 function testarTodosOsEmails() {
   const destino = 'SEU_EMAIL_DE_TESTE@exemplo.com';
   const fake = {
     lead_id: 'teste', name: 'Ana Souza', email: destino, perfil: 'Médico(a)',
     relacao: 'Já realiza transplante capilar', interesse: 'Planejamento técnico',
-    intencao: 'Quer valores e detalhes', segment: 'TESTE',
+    intencao: 'Quer valores e detalhes', segment: 'C',
   };
-  EMAIL_IDS.forEach(function (id) {
+  C_EMAIL_IDS.forEach(function (id) {
     const msg = renderEmail(id, buildContext_(fake, id));
     MailApp.sendEmail({ to: destino, subject: '[TESTE ' + id + '] ' + msg.subject, htmlBody: msg.html, body: msg.text, name: CONFIG.FROM_NAME });
   });

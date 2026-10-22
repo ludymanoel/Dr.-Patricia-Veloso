@@ -6,8 +6,8 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 
 ## Seções da página
 
-1. **Hero** (`#topo`) — headline, proposta do encontro e CTAs (captação de lead + "Ver programa").
-2. **Quiz interativo** (`#quiz`) — fluxo de 4 perguntas que personaliza a orientação e direciona ao pagamento ou à captação de lead.
+1. **Hero** (`#topo`) — headline, proposta do encontro e CTAs (inscrição direta + "Ver programa").
+2. **Inscrição direta** — formulário em modal que coleta os dados e encaminha ao checkout.
 3. **Quem conduzirá o workshop** (`#docente`) — bio e credenciais da Dra. Patricia Veloso.
 4. **Técnica** (`#tecnica`) — o que muda quando o fio permanece longo, com imagem de apoio.
 5. **Público que recusa a raspagem** (`#pacientes`) — faixa editorial sobre a demanda atendida.
@@ -16,16 +16,16 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 8. **Mega sessão** (`#mega-sessao`) — raciocínio operacional em casos extensos.
 9. **Para quem é** (`#publico`) — grid de perfis médicos + disclaimer educacional.
 10. **O que está incluído** (`#incluido`) — itens inclusos na inscrição do workshop.
-11. **Inscrição** (`#inscricao`) — dados logísticos e CTA de captação de lead.
+11. **Inscrição** (`#inscricao`) — dados logísticos e CTA para o formulário/modal de checkout.
 12. **Registros** (`#registros`) — carrossel de imagens acadêmicas com autoplay.
 13. **FAQ** (`#faq`) — acordeão com perguntas frequentes.
-14. **CTA final** — fechamento com chamada para captação de lead.
+14. **CTA final** — fechamento com chamada para o formulário de inscrição e checkout.
 
 ## Funcionalidades
 
-- **Quiz personalizado por respostas**: 4 etapas, barra de progresso, ramificação para não médicos e resultado com copy adaptada. O resultado positivo leva ao checkout direto (Mercado Pago); os demais fluxos abrem um formulário de captação de lead (nenhum dado é persistido no site).
+- **Inscrição direta**: os CTAs abrem um formulário em modal com nome, e-mail e telefone. O envio usa `mode=payment` e encaminha sempre ao checkout fixo da Kiwify (`PAYMENT_URL`) após a captação.
 - **Carrosséis acessíveis** (programa e registros): autoplay com botão **Pausar/Retomar** (`aria-pressed`), pausa em hover/focus, atualização de estado dos botões Anterior/Próximo e respeito a `prefers-reduced-motion`.
-- **Captação de lead**: o formulário nome/e-mail/telefone é compartilhado pelo quiz e pelo modal dos CTAs. Ao enviar, exibe a confirmação de que a equipe entrará em contato; com `LEAD_ENDPOINT` configurado em `script.js`, os dados são enviados por POST (ex.: Formspree/Google Apps Script).
+- **Checkout**: o formulário de nome/e-mail/telefone é compartilhado pelos CTAs da página. Com `LEAD_ENDPOINT` configurado em `script.js`, os dados são enviados por POST e o visitante segue diretamente para o checkout.
 - **FAQ em acordeão**: `<details>` nativos com abertura exclusiva (abrir um fecha os demais).
 - **Navegação âncora** entre as seções.
 
@@ -35,7 +35,7 @@ Sem framework, sem etapa de build: o site é servido diretamente pelos arquivos 
 .
 ├── index.html            # Página única (todas as seções)
 ├── styles.css            # Design tokens (CSS variables) e estilos responsivos
-├── script.js             # Quiz, carrosséis, captação de lead e acordeão
+├── script.js             # Formulário/checkout, carrosséis e acordeão
 ├── img/                  # Imagens usadas pela página
 ├── tests/                # Testes E2E (Playwright)
 ├── playwright.config.js  # Configuração do Playwright (servidor estático local)
@@ -58,14 +58,14 @@ Depois acesse `http://localhost:8000`. Qualquer servidor estático funciona (nã
 
 ## Testes E2E
 
-Smoke tests de ponta a ponta com Playwright + Chromium cobrindo o quiz interativo e os carrosséis (autoplay, controles e `prefers-reduced-motion`).
+Smoke tests de ponta a ponta com Playwright + Chromium cobrindo a ausência do quiz, o formulário/modal direto ao checkout e os carrosséis (autoplay, controles e `prefers-reduced-motion`).
 
 Requisitos: Node.js 22+ e Chromium instalado.
 
 ```bash
 npm install                    # instala @playwright/test
 npx playwright install chromium
-npm run test:e2e               # roda a suíte (18 testes)
+npm run test:e2e               # roda a suíte (13 testes)
 ```
 
 Opcional: `npm run test:e2e:ui` abre o modo interativo.
@@ -86,7 +86,7 @@ Sem root directory adicional, a Vercel serve `index.html` da raiz.
 
 ## Requisitos e observações
 
-- **Acessibilidade**: foco visível, `aria-live` no quiz, `aria-roledescription="carousel"` e rótulos nos controles, `aria-pressed` no Pausar/Retomar. As animações e o autoplay respeitam `prefers-reduced-motion`.
+- **Acessibilidade**: foco visível, rótulos no formulário/modal, `aria-roledescription="carousel"` e rótulos nos controles, `aria-pressed` no Pausar/Retomar. As animações e o autoplay respeitam `prefers-reduced-motion`.
 - **Contraste**: paleta centralizada em CSS variables (navy `#1F2A44`, beige `#E8DCC8`, gold `#C6A75E`, texto dourado `#76570f`). Textos sobre fundo navy usam branco/beige para contraste AA.
 - **Navegadores**: requer navegadores modernos (CSS custom properties, `scroll-snap`, `details`, `aspect-ratio`, `dvh`).
 - **`_archive/`**: materiais internos e imagens órfãs; ignorado pelo Git.

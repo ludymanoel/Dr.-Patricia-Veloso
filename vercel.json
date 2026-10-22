@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/workshop-long-hair-fue",
+      "destination": "/workshop-long-hair-fue.html"
+    },
+    {
+      "source": "/workshop-long-hair-fue/",
+      "destination": "/workshop-long-hair-fue.html"
+    },
+    {
+      "source": "/workshop-long-hair-fue-compact",
+      "destination": "/workshop-long-hair-fue-compact.html"
+    },
+    {
+      "source": "/workshop-long-hair-fue-compact/",
+      "destination": "/workshop-long-hair-fue-compact.html"
+    }
+  ]
+}
