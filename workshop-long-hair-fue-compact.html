@@ -4,53 +4,83 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#1F2A44" />
-    <meta name="description" content="Workshop presencial Long Hair FUE exclusivo para médicos. 13 de novembro de 2026, no Centro de Convenções Vogue Square, Rio de Janeiro." />
+    <meta name="description" content="Workshop presencial Long Hair FUE para médicos: planejamento, extração, organização da equipe e implantação com fios longos. Rio de Janeiro, 13 de novembro de 2026." />
     <title>Workshop Long Hair FUE | Dra. Patricia Veloso</title>
     <style>
-      :root { color-scheme: light; --navy: #1f2a44; --beige: #f5f0e6; --gold: #c6a75e; --ink: #242735; }
+      :root { color-scheme: light; --navy: #1f2a44; --beige: #f5f0e6; --gold: #c6a75e; --ink: #242735; --muted: #596174; }
       * { box-sizing: border-box; }
-      body { margin: 0; min-height: 100vh; background: var(--beige); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
-      main { min-height: 100svh; display: grid; place-items: center; padding: clamp(1rem, 3vh, 2rem) 1.25rem; }
-      .fold { width: min(100%, 68rem); display: grid; grid-template-columns: minmax(0, .9fr) minmax(17rem, 1fr); align-items: center; gap: clamp(1.25rem, 3vw, 2.5rem); }
-      .copy { text-align: center; }
-      .logo { display: block; width: min(100%, 17rem); height: auto; margin: 0 auto 1rem; }
-      h1 { margin: 0 auto .8rem; max-width: 18ch; color: var(--navy); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.8rem, 3.2vw, 2.8rem); line-height: 1.12; }
-      .subtitle { margin: 0 auto 1.1rem; max-width: 38ch; font-size: clamp(.95rem, 1.3vw, 1.05rem); line-height: 1.5; }
-      .event { margin: 0; color: var(--navy); font-size: .92rem; font-weight: 700; line-height: 1.55; }
-      .media { width: 100%; aspect-ratio: 9 / 16; overflow: hidden; background: var(--navy); box-shadow: 0 1rem 2.5rem #1f2a4426; }
+      body { margin: 0; min-height: 100vh; background: #fbfaf7; color: var(--ink); font-family: Inter, Arial, Helvetica, sans-serif; }
+      main { min-height: 100svh; display: flex; flex-direction: column; align-items: center; padding: 0 1.25rem; background: linear-gradient(118deg,#f5f0e7 0%,#fbfaf7 55%,#e8dcc8 100%); }
+      .fold { width: min(100%, 52rem); display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-items: center; gap: clamp(1rem, 3vh, 1.75rem); }
+      .fold--hero { min-height: 100svh; align-content: center; padding-block: clamp(1rem, 3vh, 2rem); }
+      .copy { width: 100%; text-align: center; }
+      .logo { display: block; width: min(100%, 15rem); height: auto; margin: 0 0 1.25rem; }
+      h1 { margin: 0 0 .8rem; max-width: 19ch; color: var(--navy); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2rem, 4.2vw, 3.55rem); font-weight: 500; letter-spacing: -.035em; line-height: 1.06; }
+      .subtitle { margin: 0 0 1.15rem; max-width: 44ch; color: #475267; font-size: clamp(1rem, 1.5vw, 1.15rem); line-height: 1.55; }
+      .media { width: min(100%, 25rem); margin-inline: auto; aspect-ratio: 9 / 16; overflow: hidden; border-radius: 1rem; background: var(--navy); box-shadow: 0 1rem 2.5rem #1f2a4426; }
       .media iframe { display: block; width: 100%; height: 100%; border: 0; }
-      .cta { display: inline-flex; align-items: center; justify-content: center; min-height: 3.4rem; margin-top: 1rem; padding: .85rem 1.2rem; border: 2px solid var(--gold); background: var(--navy); color: #fff; font-size: .9rem; font-weight: 800; line-height: 1.3; text-align: center; text-decoration: none; }
-      .cta:hover { background: #111827; }
-      .cta:focus-visible { outline: 3px solid var(--navy); outline-offset: 4px; }
+      .cta, .fold-purchase-cta { display: inline-flex; align-items: center; justify-content: center; width: min(100%, 28rem); min-height: 3.55rem; margin-top: 1.2rem; padding: .9rem 1.25rem; border: 1px solid var(--navy); border-radius: 999px; background: var(--navy); color: #fff; font-size: .92rem; font-weight: 800; line-height: 1.3; text-align: center; text-decoration: none; transition: background-color .2s ease, transform .2s ease; }
+      .cta:hover, .fold-purchase-cta:hover { background: #111827; transform: translateY(-1px); }
+      .cta:focus-visible, .fold-purchase-cta:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+      .fold-purchase-cta { display: flex; margin: 1.5rem auto 0; }
+      .docente, .venue { width: min(100%, 64rem); margin: 0 auto; padding: clamp(2.5rem, 7vw, 5rem) 0; }
+      .docente { display: grid; grid-template-columns: minmax(12rem, .7fr) minmax(0, 1.3fr); gap: clamp(1.5rem, 5vw, 3.5rem); align-items: center; }
+      .docente__media { width: min(100%, 22rem); margin: 0 auto; overflow: hidden; border-radius: 1rem; background: var(--navy); }
+      .docente__media img { display: block; width: 100%; height: auto; }
+      .docente__content { color: #3c4352; line-height: 1.7; }
+      .eyebrow--docente { margin: 0 0 .4rem; color: #76570f; font-size: .76rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+      h2 { margin: 0 0 1rem; color: var(--navy); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.8rem, 3.4vw, 2.8rem); font-weight: 500; letter-spacing: -.03em; line-height: 1.1; }
+      .docente__content p:not(.eyebrow--docente) { margin: 0 0 1rem; }
+      .whatsapp-float { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 10; display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border: 2px solid #fff; border-radius: 50%; background: #168c4a; color: #fff; box-shadow: 0 4px 18px #11182747; text-decoration: none; }
+      .whatsapp-float:hover { background: #116d3a; }
+      .whatsapp-float:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+      .whatsapp-float__icon { width: 1.8rem; height: 1.8rem; }
       @media (max-width: 700px) {
-        main { padding: 1rem; }
-        .fold { width: min(100%, 33rem); grid-template-columns: 1fr; gap: .85rem; }
-        .logo { width: min(48vw, 11rem); margin-bottom: .55rem; }
-        h1 { max-width: 22ch; margin-bottom: .45rem; font-size: clamp(1.45rem, 6vw, 2.1rem); }
-        .subtitle { margin-bottom: .45rem; font-size: .9rem; }
-        .event { font-size: .82rem; }
-        .media { width: min(100%, 15rem); margin-inline: auto; }
-        .cta { min-height: 3rem; margin-top: .75rem; padding: .7rem .8rem; font-size: .8rem; }
+        main { padding: 0 1.1rem; }
+        .fold--hero { min-height: 100svh; padding-block: 1rem; }
+        .fold { width: min(100%, 34rem); grid-template-columns: 1fr; gap: .8rem; }
+        .copy { text-align: center; }
+        .logo { width: min(42vw, 10rem); margin: 0 auto .45rem; }
+        h1 { max-width: 23ch; margin: 0 auto .45rem; font-size: clamp(1.65rem, 7vw, 2.45rem); }
+        .subtitle { margin: 0 auto .65rem; font-size: .9rem; }
+        .media { width: min(100%, 18rem); }
+        .cta { width: min(100%, 24rem); min-height: 3rem; margin-top: .7rem; padding: .7rem .8rem; font-size: .82rem; }
+        .docente { grid-template-columns: 1fr; gap: 1rem; padding-block: 2.5rem; }
+        .docente__media { width: min(100%, 16rem); }
+        .docente__content { text-align: center; }
+        .whatsapp-float { right: max(.75rem, env(safe-area-inset-right)); bottom: max(.75rem, env(safe-area-inset-bottom)); width: 3.25rem; height: 3.25rem; }
       }
-      @media (max-width: 360px) { .fold { gap: .6rem; } .logo { width: 8rem; } .media { width: min(100%, 12.5rem); } }
+      @media (max-width: 380px) and (max-height: 760px) { main { padding-block: .6rem; } .fold { gap: .5rem; } .logo { width: 7.5rem; margin-bottom: .2rem; } h1 { font-size: 1.5rem; } .subtitle { font-size: .82rem; } .media { width: min(100%, 15rem); } .cta { margin-top: .5rem; } }
     </style>
   </head>
   <body>
     <main>
-      <section class="fold" aria-labelledby="hero-title">
+      <section class="fold fold--hero" aria-labelledby="hero-title">
         <div class="copy">
-          <img class="logo" src="/workshop-long-hair-fue-compact-assets/logo.png" width="320" height="283" alt="Logo do Workshop Long Hair FUE" />
-          <h1 id="hero-title">Domine a técnica Long Hair FUE lidere o mercado premium do transplante capilar na sua região.</h1>
-          <p class="subtitle">Workshop presencial exclusivo para médicos que desejam dominar a técnica Long Hair FUE.</p>
-          <p class="event">Centro de Convenções Vogue Square<br />Barra da Tijuca, Rio de Janeiro<br />13 de novembro de 2026</p>
+          <img class="logo" src="/workshop-long-hair-fue-assets/img/logo.png" width="320" height="283" alt="Logo do Workshop Long Hair FUE" fetchpriority="high" decoding="async" />
+          <h1 id="hero-title">Domine a técnica Long Hair FUE lidere o mercado premium do transplante capilar na sua região</h1>
+          <p class="subtitle">Um dia de aprofundamento com a Dra. Patricia Veloso sobre planejamento e condução de casos com fios longos.</p>
         </div>
         <div>
           <div class="media">
             <iframe src="https://player.vimeo.com/video/1238362022?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" width="1080" height="1920" allow="fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" title="Vídeo do Workshop Long Hair FUE"></iframe>
           </div>
-          <a class="cta" href="https://pay.kiwify.com.br/Kxl16ye">GARANTIR MINHA VAGA AGORA - INGRESSO 1 LOTE</a>
+          <a class="cta" href="https://pay.kiwify.com.br/Kxl16ye" target="_blank" rel="noopener noreferrer">Quero garantir minha vaga</a>
         </div>
       </section>
+      <section class="docente" aria-labelledby="teacher-title">
+        <figure class="docente__media"><img src="/workshop-long-hair-fue-assets/img/teacher.jpg" width="933" height="1400" loading="lazy" alt="Dra. Patricia Veloso, docente do workshop Long Hair FUE" /></figure>
+        <div class="docente__content">
+          <p class="eyebrow eyebrow--docente">Quem conduzirá o workshop</p>
+          <h2 id="teacher-title">Dra. Patricia Veloso</h2>
+          <p>Cirurgiã Plástica, CRM-MG 50766 e RQE 34013, a Dra. Patricia Veloso é pioneira mundial em mega e giga sessões com a técnica Long Hair FUE, com atuação internacional em congressos, workshops médicos e discussões técnicas sobre casos de alta complexidade, mostrando casuística de pacientes operados em um único dia com 3000 a 4000 unidades foliculares de fios longos, feito até então inédito no mundo. Foi também convidada a demonstrar a técnica Long Hair FUE durante as cirurgias ao vivo, para médicos de diversos países.</p>
+          <p>Neste workshop presencial, ela compartilha o raciocínio por trás do planejamento, da extração, da organização da equipe e da implantação com fios longos. Neste encontro, ela não apresentará apenas uma sequência de etapas. Vai abrir todos os segredos e o raciocínio usado para planejar, executar e coordenar casos em que o fio longo altera a cirurgia.</p>
+        </div>
+        <a class="button button--purchase fold-purchase-cta" href="https://pay.kiwify.com.br/Kxl16ye" target="_blank" rel="noopener noreferrer">GARANTIR MINHA VAGA AGORA - INGRESSO 1 LOTE</a>
+      </section>
     </main>
+    <a class="whatsapp-float" href="https://wa.me/553884213318" target="_blank" rel="noopener noreferrer" aria-label="Falar com a equipe pelo WhatsApp" title="Falar com a equipe pelo WhatsApp">
+      <svg class="whatsapp-float__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.06 0C5.53 0 .22 5.31.22 11.84c0 2.09.55 4.13 1.59 5.92L.12 24l6.38-1.67a11.82 11.82 0 0 0 5.56 1.42h.01c6.53 0 11.84-5.31 11.84-11.84 0-3.17-1.23-6.14-3.41-8.41Zm-8.43 18.2h-.01a9.82 9.82 0 0 1-5.01-1.37l-.36-.21-3.79.99 1.01-3.7-.23-.38a9.83 9.83 0 1 1 8.39 4.67Zm5.4-7.36c-.3-.15-1.76-.87-2.03-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.79-1.67-2.09-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.17.2 2.1 3.21 5.09 4.5.71.31 1.27.49 1.7.63.72.23 1.38.2 1.9.12.58-.09 1.76-.72 2.01-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" fill="currentColor" /></svg>
+    </a>
   </body>
 </html>
