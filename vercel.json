@@ -4,6 +4,14 @@
   "framework": null,
   "rewrites": [
     {
+      "source": "/hands-on-long-hair-fue",
+      "destination": "/hands-on-long-hair-fue.html"
+    },
+    {
+      "source": "/hands-on-long-hair-fue/",
+      "destination": "/hands-on-long-hair-fue.html"
+    },
+    {
       "source": "/workshop-long-hair-fue",
       "destination": "/workshop-long-hair-fue.html"
     },

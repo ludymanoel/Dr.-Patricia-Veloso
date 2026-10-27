@@ -40,6 +40,21 @@ test("landing standalone abre diretamente e carrega seus estilos, script e image
   await expect(page.locator('script[src="/workshop-long-hair-fue-assets/script.js"]')).toHaveAttribute("src", "/workshop-long-hair-fue-assets/script.js");
 });
 
+test("landing Hands-on tem rota Vercel, datas confirmadas e CTA WhatsApp", async ({ page }) => {
+  const response = await page.goto("/hands-on-long-hair-fue.html");
+  expect(response?.status()).toBe(200);
+  await expect(page).toHaveTitle("Hands-on Long Hair FUE | Dra. Patricia Veloso");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Hands-on");
+  await expect(page.locator("main")).toContainText("14 e 15 de novembro de 2026");
+  await expect(page.locator("main")).toContainText("Prática supervisionada");
+  await expect(page.locator("main")).toContainText("em pacientes reais");
+  await expect(page.locator('a[href*="wa.me/5538984213318"]')).toHaveCount(2);
+  await expect(page.locator("main")).toContainText("Exclusivo para médicos");
+  const config = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+  expect(config.rewrites).toContainEqual({ source: "/hands-on-long-hair-fue", destination: "/hands-on-long-hair-fue.html" });
+  expect(config.rewrites).toContainEqual({ source: "/hands-on-long-hair-fue/", destination: "/hands-on-long-hair-fue.html" });
+});
+
 test("landing apresenta cinco dobras verificadas, CTA e sem VSL, urgência ou promessas indevidas", async ({ page }) => {
   await page.goto("/workshop-long-hair-fue.html");
   const folds = page.locator("main > section[data-fold]");
