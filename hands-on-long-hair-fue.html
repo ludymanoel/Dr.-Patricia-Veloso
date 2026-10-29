@@ -67,6 +67,26 @@
     .slots { display:grid; place-content:center; min-height:18rem; background:#050505; text-align:center; }
     .slots b { color:var(--gold); font-size:clamp(4.5rem,10vw,7rem); line-height:1; }
     .slots span { color:white; font-size:1.35rem; font-weight:800; }
+    body.is-modal-open { overflow:hidden; }
+    .lead-modal { position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:1rem; }
+    .lead-modal[hidden] { display:none; }
+    .lead-modal__backdrop { position:absolute; inset:0; background:rgba(0,0,0,.82); backdrop-filter:blur(5px); }
+    .lead-modal__dialog { position:relative; z-index:1; width:min(100%,34rem); max-height:calc(100dvh - 2rem); overflow-y:auto; padding:clamp(1.4rem,5vw,2.2rem); border:1px solid #6d5c2a; border-radius:.65rem; background:#131313; box-shadow:0 1.5rem 4rem #0009; }
+    .lead-modal__close { position:absolute; top:.55rem; right:.65rem; width:2.5rem; height:2.5rem; border:1px solid #555; border-radius:50%; background:#222; color:#fff; font-size:1.5rem; cursor:pointer; }
+    .lead-modal__dialog h3 { margin:0 2rem 1rem 0; color:#fff; font:500 clamp(1.6rem,5vw,2.2rem)/1.1 Georgia,'Times New Roman',serif; }
+    .lead-form__kicker { margin:0 0 .35rem; color:var(--gold); font-size:.75rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    .lead-form__text,.lead-form__privacy { color:var(--muted); font-size:.9rem; }
+    .lead-form__field { display:grid; gap:.35rem; margin:1rem 0; }
+    .lead-form__field label { color:#fff; font-size:.9rem; font-weight:700; }
+    .lead-form__field input { width:100%; min-height:3rem; padding:.7rem .8rem; border:1px solid #555; border-radius:.25rem; background:#080808; color:#fff; font:inherit; }
+    .lead-form__field input:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+    .lead-form__error { min-height:1.2em; margin:0; color:#ff9b9b; font-size:.8rem; }
+    .lead-form__status { min-height:1.5em; color:#ff9b9b; font-size:.9rem; }
+    .lead-form__status.is-success { color:#b7efbf; }
+    .lead-form__submit { display:flex; width:100%; min-height:3.75rem; align-items:center; justify-content:center; padding:1rem 1.25rem; border:1px solid var(--gold); border-radius:.25rem; background:var(--gold); color:#101010; font:900 1.05rem/1.25 Inter,Arial,Helvetica,sans-serif; text-align:center; cursor:pointer; transition:background .2s,transform .2s; }
+    .lead-form__submit:hover { transform:translateY(-1px); background:#e6c454; }
+    .lead-form__submit:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+    .lead-form__submit:disabled { cursor:wait; opacity:.7; }
     footer { padding:2rem 1rem; color:#888; font-size:.8rem; text-align:center; }
     footer p { margin:.25rem; }
     @media(max-width:700px) { .wrap { width:min(100% - 2rem, 38rem); } .notice { font-size:.72rem; } .grid,.audience-grid { grid-template-columns:1fr; } .authority { grid-template-columns:1fr; } .authority img { max-height:22rem; object-position:center 35%; } .event { grid-template-columns:1fr; } .slots { min-height:12rem; } .button { width:100%; } .records__grid figure { flex-basis:min(86%,19rem); } }
@@ -99,7 +119,7 @@
       <h1 id="hero-title">Curso presencial <span>Hands-on</span> Long Hair FUE</h1>
       <p class="intro">Aprofunde sua prática na técnica de transplante capilar com fios longos, com acompanhamento supervisionado em pacientes reais e discussão das decisões envolvidas em cada etapa.</p>
       <div class="details"><span><strong>14 e 15/11/2026</strong></span><span><strong>Vogue Square</strong> • Barra da Tijuca, RJ</span><span><strong>Exclusivo para médicos</strong></span></div>
-      <a class="button" href="https://wa.me/5538984213318?text=Ol%C3%A1%2C%20tenho%20interesse%20nas%20vagas%20do%20Curso%20Hands-on%20Long%20Hair%20FUE%20(14%20e%2015%2F11)." target="_blank" rel="noopener noreferrer">CONSULTAR VAGAS PELO WHATSAPP</a>
+      <a class="button" href="#inscricao" data-lead-modal-trigger data-lead-mode="whatsapp">CONSULTAR VAGAS PELO WHATSAPP</a>
     </section>
     <section class="section section--panel" id="opportunity" aria-labelledby="opportunity-title">
       <div class="wrap">
@@ -169,40 +189,20 @@
           <h2 id="event-title">Garanta sua vaga</h2>
           <p>Turma limitada a 9 médicos. Fale com a equipe para receber informações e confirmar disponibilidade.</p>
           <ul class="facts"><li><strong>Datas:</strong> 14 e 15 de novembro de 2026</li><li><strong>Local:</strong> Vogue Square, Barra da Tijuca, Rio de Janeiro</li><li><strong>Público:</strong> Exclusivo para médicos</li></ul>
-          <a class="button" href="https://wa.me/5538984213318?text=Ol%C3%A1%2C%20tenho%20interesse%20nas%20vagas%20do%20Curso%20Hands-on%20Long%20Hair%20FUE%20(14%20e%2015%2F11)." target="_blank" rel="noopener noreferrer">FALAR COM A EQUIPE</a>
+          <a class="button" href="#inscricao" data-lead-modal-trigger data-lead-mode="whatsapp">FALAR COM A EQUIPE</a>
         </div>
         <div class="slots" aria-label="Turma limitada a nove médicos"><b>09</b><span>VAGAS NA TURMA</span></div>
       </div>
     </section>
   </main>
   <footer><p>© 2026 Dra. Patrícia Veloso • Long Hair FUE Academy</p></footer>
-  <script>
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    document.querySelectorAll("[data-carousel]").forEach((carousel) => {
-      const viewport = carousel.querySelector("[data-carousel-viewport]");
-      let timer;
-      let paused = false;
-      const canScroll = () => viewport.scrollWidth > viewport.clientWidth + 8;
-      const advance = () => {
-        if (paused || reducedMotion.matches || !canScroll()) return;
-        const first = viewport.querySelector("figure");
-        const gap = parseFloat(getComputedStyle(first.parentElement).gap) || 0;
-        const step = first.getBoundingClientRect().width + gap;
-        const end = viewport.scrollWidth - viewport.clientWidth;
-        viewport.scrollTo({ left: viewport.scrollLeft >= end - 8 ? 0 : viewport.scrollLeft + step, behavior:"smooth" });
-      };
-      const start = () => {
-        clearInterval(timer);
-        if (!reducedMotion.matches && canScroll()) timer = setInterval(advance, 4200);
-      };
-      carousel.addEventListener("mouseenter", () => { paused = true; });
-      carousel.addEventListener("mouseleave", () => { paused = false; });
-      carousel.addEventListener("focusin", () => { paused = true; });
-      carousel.addEventListener("focusout", () => { paused = false; });
-      window.addEventListener("resize", start);
-      reducedMotion.addEventListener?.("change", start);
-      start();
-    });
-  </script>
+  <div class="lead-modal" data-lead-modal hidden>
+    <div class="lead-modal__backdrop" data-lead-modal-backdrop></div>
+    <div class="lead-modal__dialog" data-lead-modal-dialog role="dialog" aria-modal="true" aria-label="Formulário para falar com a equipe">
+      <button class="lead-modal__close" type="button" data-lead-modal-close aria-label="Fechar formulário"><span aria-hidden="true">×</span></button>
+      <div class="lead-modal__body" data-lead-modal-body></div>
+    </div>
+  </div>
+  <script src="/script.js" defer></script>
 </body>
 </html>

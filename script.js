@@ -43,6 +43,7 @@ function initCarousels() {
 }
 
 const PAYMENT_URL = "https://pay.kiwify.com.br/Kxl16ye";
+const WHATSAPP_URL = "https://wa.me/5538984213318?text=Ol%C3%A1%2C%20acabei%20de%20me%20inscrever%20para%20o%20Hands-on%20Long%20Hair%20FUE%20(14%20e%2015%2F11)%20e%20quero%20falar%20com%20a%20equipe.";
 const LEAD_ENDPOINTS = {
   primary: "https://script.google.com/macros/s/AKfycbxocr7uTtsN_hZ4h6WnlCO2RzyHM6DMvTayc3s1PXOxYBunNonLBuBxXkqAUZ1KjLg/exec",
   mirrors: ["https://script.google.com/macros/s/AKfycbxo-Agl8ovuXKgdZpwnKL9af8jOBe7dcgkeeB6r1EPT2MVAuVrR4IJfPRNu1SlfafxYnw/exec"],
@@ -78,7 +79,7 @@ function getOrCreateLeadId() {
   return id;
 }
 
-function trackLead(leadId) {
+function trackLead(leadId, mode = "payment") {
   if (!leadId || trackedLeadIds.has(leadId)) return false;
   const storage = getSessionStorage();
   try {
@@ -89,11 +90,13 @@ function trackLead(leadId) {
 
   try {
     window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({ event: "lead", lead_id: leadId, mode: "payment", source: "inscricao" });
+    window.dataLayer.push({ event: "lead", lead_id: leadId, mode, source: "inscricao" });
   } catch { /* tracking não pode interromper o checkout */ }
   try {
     if (typeof window.fbq === "function") {
-      window.fbq("track", "Lead", { content_name: "Workshop Long Hair FUE", content_category: "workshop", source: "inscricao" }, { eventID: leadId });
+      const eventData = { content_name: "Workshop Long Hair FUE", content_category: "workshop", source: "inscricao" };
+      if (mode !== "payment") eventData.mode = mode;
+      window.fbq("track", "Lead", eventData, { eventID: leadId });
     }
   } catch { /* tracking não pode interromper o checkout */ }
   return true;
@@ -121,8 +124,12 @@ function buildLeadFormFields(prefix) {
   }).join("");
 }
 
-function buildLeadFormMarkup(prefix) {
-  return `<p class="lead-form__kicker">Inscrição</p><h3 id="${prefix}-title">Complete os seus dados para garantir sua vaga</h3><form class="lead-form" data-lead-form data-lead-mode="payment" novalidate aria-labelledby="${prefix}-title"><p class="lead-form__text">${LEAD_FORM_PAYMENT_DESCRIPTION}</p>${buildLeadFormFields(prefix)}<p class="lead-form__privacy">${LEAD_FORM_PRIVACY_TEXT}</p><p class="lead-form__status" data-lead-status role="status" aria-live="polite"></p><button class="btn lead-form__submit" type="submit">Garantir minha vaga</button></form>`;
+function buildLeadFormMarkup(prefix, mode = "payment") {
+  const isWhatsApp = mode === "whatsapp";
+  const description = isWhatsApp
+    ? "Informe seus dados para registrar seu interesse. Após o envio, você seguirá para o WhatsApp da equipe."
+    : LEAD_FORM_PAYMENT_DESCRIPTION;
+  return `<p class="lead-form__kicker">Inscrição</p><h3 id="${prefix}-title">Complete os seus dados para garantir sua vaga</h3><form class="lead-form" data-lead-form data-lead-mode="${isWhatsApp ? "whatsapp" : "payment"}" novalidate aria-labelledby="${prefix}-title"><p class="lead-form__text">${description}</p>${buildLeadFormFields(prefix)}<p class="lead-form__privacy">${LEAD_FORM_PRIVACY_TEXT}</p><p class="lead-form__status" data-lead-status role="status" aria-live="polite"></p><button class="btn lead-form__submit" type="submit">Garantir minha vaga</button></form>`;
 }
 
 function validateLeadForm(form) {
@@ -170,7 +177,7 @@ async function sendLead(form) {
   const now = new Date();
   const payload = {
     action: "lead",
-    mode: "payment",
+    mode: form.dataset.leadMode === "whatsapp" ? "lead" : "payment",
     lead_id: getOrCreateLeadId(),
     name: form.elements.name.value.trim(),
     email: form.elements.email.value.trim().toLowerCase(),
@@ -224,6 +231,14 @@ function showCheckoutError(form, button) {
   button.textContent = "Garantir minha vaga";
 }
 
+function showWhatsAppConfirmation(form, button) {
+  const status = form.querySelector("[data-lead-status]");
+  status.textContent = "Dados enviados! Você será direcionado para o WhatsApp da equipe.";
+  status.classList.add("is-success");
+  button.textContent = "Abrindo WhatsApp…";
+  window.setTimeout(() => { window.location.href = WHATSAPP_URL; }, 700);
+}
+
 function createModalController(modal, dialog, closeButton) {
   let lastFocused;
   const close = () => {
@@ -265,7 +280,7 @@ function initLeadModal() {
     trigger.setAttribute("aria-haspopup", "dialog");
     trigger.addEventListener("click", (event) => {
       event.preventDefault();
-      body.innerHTML = buildLeadFormMarkup("modal-lead");
+      body.innerHTML = buildLeadFormMarkup("modal-lead", trigger.dataset.leadMode || "payment");
       controller.open(trigger);
     });
   });
@@ -278,11 +293,13 @@ document.addEventListener("submit", async (event) => {
   if (!validateLeadForm(form)) return;
   const button = form.querySelector("button[type=submit]");
   button.disabled = true;
-  button.textContent = "Abrindo pagamento…";
+  const isWhatsApp = form.dataset.leadMode === "whatsapp";
+  button.textContent = isWhatsApp ? "Enviando seus dados…" : "Abrindo pagamento…";
   const sent = await sendLead(form);
   if (!sent) console.warn("Não foi possível confirmar a captação nos endpoints");
   if (!sent) { showCheckoutError(form, button); return; }
-  trackLead(getOrCreateLeadId());
+  trackLead(getOrCreateLeadId(), isWhatsApp ? "lead" : "payment");
+  if (isWhatsApp) { showWhatsAppConfirmation(form, button); return; }
   showCheckoutConfirmation(form, button);
 });
 

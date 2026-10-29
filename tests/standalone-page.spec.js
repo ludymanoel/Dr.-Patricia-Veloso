@@ -48,7 +48,8 @@ test("landing Hands-on tem rota Vercel, datas confirmadas e CTA WhatsApp", async
   await expect(page.locator("main")).toContainText("14 e 15 de novembro de 2026");
   await expect(page.locator("main")).toContainText("Prática supervisionada");
   await expect(page.locator("main")).toContainText("em pacientes reais");
-  await expect(page.locator('a[href*="wa.me/5538984213318"]')).toHaveCount(2);
+  await expect(page.locator("[data-lead-modal-trigger][data-lead-mode=whatsapp]")).toHaveCount(2);
+  await expect(page.locator('a[href*="wa.me/5538984213318"]')).toHaveCount(0);
   await expect(page.locator("main")).toContainText("Exclusivo para médicos");
   await expect(page.locator(".contact")).toHaveCount(0);
   await expect(page.locator(".hero .eyebrow")).toHaveCount(0);
@@ -77,6 +78,43 @@ test("landing Hands-on explica oportunidade, autoridade, perfil e aplicações c
   await expect(page.locator("#mentor")).toContainText("7th Latin American FUE Workshop");
   await expect(page.locator("#audience")).toContainText("Você já realiza FUE");
   await expect(page.locator("#advantages-title")).toContainText("Planeje áreas extensas");
+});
+
+test("CTA Hands-on coleta dados, grava lead no modo lead e segue para o WhatsApp", async ({ page }) => {
+  let submittedPayload;
+  await page.route(ENDPOINT, async (route) => {
+    submittedPayload = JSON.parse(route.request().postData() || "{}");
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+  });
+  await page.route("https://wa.me/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "WhatsApp" }));
+  await page.goto("/hands-on-long-hair-fue.html");
+  await page.locator(".hero [data-lead-modal-trigger]").click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Nome")).toBeVisible();
+  await expect(dialog.getByLabel("E-mail")).toBeVisible();
+  await expect(dialog.getByLabel("Telefone + DDD")).toBeVisible();
+  expect((await dialog.locator("button[type=submit]").boundingBox())?.height).toBeGreaterThanOrEqual(56);
+  await dialog.getByLabel("Nome").fill("Dra. Ana Exemplo");
+  await dialog.getByLabel("E-mail").fill("ana@example.com");
+  await dialog.getByLabel("Telefone + DDD").fill("21999999999");
+  await dialog.locator("button[type=submit]").click();
+  await expect(dialog.locator("[data-lead-status]")).toHaveText("Dados enviados! Você será direcionado para o WhatsApp da equipe.");
+  expect(submittedPayload).toMatchObject({ action: "lead", mode: "lead", name: "Dra. Ana Exemplo", email: "ana@example.com", phone: "21999999999" });
+  await page.waitForURL(/wa\.me\/5538984213318/, { timeout: 5000 });
+});
+
+test("falha ao gravar lead Hands-on mantém formulário aberto e não abre WhatsApp", async ({ page }) => {
+  await page.route(ENDPOINT, (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ ok: false }) }));
+  await page.goto("/hands-on-long-hair-fue.html");
+  await page.locator(".hero [data-lead-modal-trigger]").click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Nome").fill("Dra. Ana Exemplo");
+  await dialog.getByLabel("E-mail").fill("ana@example.com");
+  await dialog.getByLabel("Telefone + DDD").fill("21999999999");
+  await dialog.locator("button[type=submit]").click();
+  await expect(dialog.locator("[data-lead-status]")).toHaveText("Não foi possível enviar seus dados. Tente novamente.");
+  await expect(dialog).toBeVisible();
+  await expect(page).toHaveURL(/hands-on-long-hair-fue\.html$/);
 });
 
 test("landing apresenta cinco dobras verificadas, CTA e sem VSL, urgência ou promessas indevidas", async ({ page }) => {
