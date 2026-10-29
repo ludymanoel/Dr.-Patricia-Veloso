@@ -50,9 +50,33 @@ test("landing Hands-on tem rota Vercel, datas confirmadas e CTA WhatsApp", async
   await expect(page.locator("main")).toContainText("em pacientes reais");
   await expect(page.locator('a[href*="wa.me/5538984213318"]')).toHaveCount(2);
   await expect(page.locator("main")).toContainText("Exclusivo para médicos");
+  await expect(page.locator(".contact")).toHaveCount(0);
+  await expect(page.locator(".hero .eyebrow")).toHaveCount(0);
+  await expect(page.locator("footer")).not.toContainText("Ciência • Técnica • Arte");
   const config = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
   expect(config.rewrites).toContainEqual({ source: "/hands-on-long-hair-fue", destination: "/hands-on-long-hair-fue.html" });
   expect(config.rewrites).toContainEqual({ source: "/hands-on-long-hair-fue/", destination: "/hands-on-long-hair-fue.html" });
+});
+
+test("landing Hands-on exibe carrossel de cinco registros com rolagem horizontal", async ({ page }) => {
+  await page.goto("/hands-on-long-hair-fue.html");
+  const carousel = page.locator("[data-carousel]");
+  await expect(carousel).toHaveCount(1);
+  await expect(carousel.locator(".carousel__viewport")).toHaveAttribute("aria-label", "Rolagem horizontal dos casos Long Hair FUE");
+  await expect(carousel.locator("figure")).toHaveCount(5);
+  await expect(carousel.locator("figcaption")).toHaveCount(0);
+  expect(await carousel.locator(".carousel__viewport").evaluate((el) => el.scrollWidth > el.clientWidth)).toBeTruthy();
+  await expect.poll(() => carousel.locator(".carousel__viewport").evaluate((el) => el.scrollLeft), { timeout: 7000 }).toBeGreaterThan(0);
+  expect(await carousel.locator(".carousel__viewport").evaluate((el) => getComputedStyle(el).scrollbarWidth)).toBe("none");
+});
+
+test("landing Hands-on explica oportunidade, autoridade, perfil e aplicações cirúrgicas", async ({ page }) => {
+  await page.goto("/hands-on-long-hair-fue.html");
+  await expect(page.locator("#opportunity")).toContainText("podem adiar ou deixar de considerar o procedimento");
+  await expect(page.locator("#opportunity .eyebrow")).toHaveCSS("text-align", "center");
+  await expect(page.locator("#mentor")).toContainText("7th Latin American FUE Workshop");
+  await expect(page.locator("#audience")).toContainText("Você já realiza FUE");
+  await expect(page.locator("#advantages-title")).toContainText("Planeje áreas extensas");
 });
 
 test("landing apresenta cinco dobras verificadas, CTA e sem VSL, urgência ou promessas indevidas", async ({ page }) => {

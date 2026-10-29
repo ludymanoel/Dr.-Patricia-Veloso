@@ -29,15 +29,35 @@
     .section { padding:clamp(3.5rem,8vw,5.5rem) 0; border-top:1px solid #292929; }
     .section--panel { background:#111; }
     .section-title { margin:0 0 .8rem; color:#fff; font:500 clamp(2rem,4vw,3rem)/1.15 Georgia,'Times New Roman',serif; text-align:center; }
+    #opportunity .eyebrow { text-align:center; }
     .section-lead { max-width:48rem; margin:0 auto 2.5rem; color:var(--muted); text-align:center; }
     .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.2rem; }
     .card { padding:1.6rem; border-top:3px solid var(--gold); background:#050505; }
     .card h3 { margin-bottom:.55rem; color:#fff; font-size:1.2rem; }
     .card p { margin:0; color:var(--muted); }
+    .authority { display:grid; grid-template-columns:minmax(14rem,.7fr) 1.3fr; gap:clamp(1.5rem,5vw,3.5rem); align-items:center; }
+    .authority img { display:block; width:100%; max-height:28rem; border-radius:.65rem; object-fit:cover; }
+    .authority h2,.audience h2 { margin-bottom:1rem; color:#fff; font:500 clamp(2rem,4vw,3rem)/1.15 Georgia,'Times New Roman',serif; }
+    .authority p,.audience p { color:var(--muted); }
+    .authority .eyebrow { margin-bottom:.6rem; }
+    .audience-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin-top:2rem; }
+    .audience-card { padding:1.4rem; border:1px solid #393939; border-radius:.5rem; background:#111; }
+    .audience-card h3 { color:var(--gold); }
+    .audience-card p { margin:0; }
+    .audience-note { margin-top:1.2rem; padding:1rem 1.2rem; border-left:3px solid var(--gold); background:#111; }
     .benefits { display:grid; gap:1rem; max-width:52rem; margin:2rem auto 0; padding:0; list-style:none; }
     .benefits li { display:grid; grid-template-columns:2rem 1fr; gap:.6rem; padding:1.2rem; border-radius:.5rem; background:var(--panel); }
     .check { color:var(--gold); font-size:1.35rem; }
     .benefits strong { display:block; color:white; }
+    .records { margin-top:clamp(3rem,7vw,5rem); }
+    .records-title { margin:0 0 1.5rem; color:#fff; font:500 clamp(1.8rem,4vw,2.6rem)/1.15 Georgia,'Times New Roman',serif; text-align:center; }
+    .carousel__viewport { overflow-x:auto; overscroll-behavior-inline:contain; scroll-snap-type:x mandatory; scroll-behavior:smooth; scrollbar-width:none; -ms-overflow-style:none; padding:.35rem .25rem 1rem; margin-inline:-.25rem; }
+    .carousel__viewport::-webkit-scrollbar { display:none; }
+    .carousel__viewport:focus-visible { outline:3px solid var(--gold); outline-offset:4px; border-radius:.5rem; }
+    .records__grid { display:flex; gap:1rem; }
+    .records__grid figure { flex:0 0 min(82%,22rem); margin:0; overflow:hidden; border-radius:.7rem; background:#171717; scroll-snap-align:center; }
+    .records__grid img { display:block; width:100%; height:auto; aspect-ratio:3/4; object-fit:cover; }
+    .records__grid figcaption { padding:.85rem 1rem 1rem; color:#c4c4c4; font-size:.88rem; }
     .event { display:grid; grid-template-columns:1.2fr .8fr; overflow:hidden; border:1px solid #333; border-radius:.65rem; background:var(--panel); }
     .event-copy { padding:clamp(1.5rem,5vw,3rem); }
     .event-copy h2 { margin-bottom:.8rem; color:white; font:500 clamp(2rem,4vw,2.7rem)/1.1 Georgia,'Times New Roman',serif; }
@@ -49,20 +69,25 @@
     .slots span { color:white; font-size:1.35rem; font-weight:800; }
     footer { padding:2rem 1rem; color:#888; font-size:.8rem; text-align:center; }
     footer p { margin:.25rem; }
-    @media(max-width:700px) { .wrap { width:min(100% - 2rem, 38rem); } .notice { font-size:.72rem; } .grid { grid-template-columns:1fr; } .event { grid-template-columns:1fr; } .slots { min-height:12rem; } .button { width:100%; } }
-    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { transition:none!important; } }
+    @media(max-width:700px) { .wrap { width:min(100% - 2rem, 38rem); } .notice { font-size:.72rem; } .grid,.audience-grid { grid-template-columns:1fr; } .authority { grid-template-columns:1fr; } .authority img { max-height:22rem; object-position:center 35%; } .event { grid-template-columns:1fr; } .slots { min-height:12rem; } .button { width:100%; } .records__grid figure { flex-basis:min(86%,19rem); } }
+    @media(prefers-reduced-motion:reduce) { html,.carousel__viewport { scroll-behavior:auto; } *,*::before,*::after { transition:none!important; } }
   </style>
 </head>
 <body>
   <div class="notice">VAGAS LIMITADAS PARA O HANDS-ON PRESENCIAL • 14 E 15 DE NOVEMBRO DE 2026</div>
   <main>
     <section class="hero wrap" aria-labelledby="hero-title">
-      <p class="eyebrow">Long Hair FUE Academy • Exclusivo para médicos</p>
       <h1 id="hero-title">Curso presencial <span>Hands-on</span> Long Hair FUE</h1>
       <p class="intro">Aprofunde sua prática na técnica de transplante capilar com fios longos, com acompanhamento supervisionado em pacientes reais e discussão das decisões envolvidas em cada etapa.</p>
       <div class="details"><span><strong>14 e 15/11/2026</strong></span><span><strong>Vogue Square</strong> • Barra da Tijuca, RJ</span><span><strong>Exclusivo para médicos</strong></span></div>
       <a class="button" href="https://wa.me/5538984213318?text=Ol%C3%A1%2C%20tenho%20interesse%20nas%20vagas%20do%20Curso%20Hands-on%20Long%20Hair%20FUE%20(14%20e%2015%2F11)." target="_blank" rel="noopener noreferrer">CONSULTAR VAGAS PELO WHATSAPP</a>
-      <p class="contact">Contato direto com a equipe: +55 (38) 98421-3318</p>
+    </section>
+    <section class="section section--panel" id="opportunity" aria-labelledby="opportunity-title">
+      <div class="wrap">
+        <p class="eyebrow">A demanda que pode estar chegando à sua clínica</p>
+        <h2 class="section-title" id="opportunity-title">Há pacientes que não recusam o transplante. Recusam raspar a cabeça.</h2>
+        <p class="section-lead">Executivos, mulheres e pessoas com alta exposição social podem adiar ou deixar de considerar o procedimento por não quererem raspar os cabelos. Entender as possibilidades e os limites do Long Hair FUE ajuda o médico a avaliar essa demanda com critério — e a não perder a conversa para quem já está preparado para conduzi-la.</p>
+      </div>
     </section>
     <section class="section section--panel" aria-labelledby="learning-title">
       <div class="wrap">
@@ -75,13 +100,49 @@
         </div>
       </div>
     </section>
+    <section class="section wrap" id="mentor" aria-labelledby="mentor-title">
+      <div class="authority">
+        <img src="img/foto3.JPG" width="960" height="1280" loading="lazy" alt="Dra. Patricia Veloso em atividade profissional">
+        <div>
+          <p class="eyebrow">Experiência clínica e ensino internacional</p>
+          <h2 id="mentor-title">Aprenda com a Dra. Patricia Veloso</h2>
+          <p>Cirurgiã plástica, CRM-MG 50766 e RQE 34013. Em 2023, integrou o faculty do 7th Latin American FUE Workshop, em Punta Cana, e apresentou “Mega session with long hair FUE”. Também participou da programação científica da ISHRS em 2024.</p>
+          <p>No Hands-on, a Dra. Patricia conduz a experiência prática e compartilha o raciocínio técnico e operacional envolvido no planejamento e na condução de casos com fios longos.</p>
+        </div>
+      </div>
+    </section>
+    <section class="section section--panel" id="audience" aria-labelledby="audience-title">
+      <div class="wrap audience">
+        <p class="eyebrow">Um treinamento presencial para médicos</p>
+        <h2 id="audience-title">Este Hands-on é para quem quer avançar com critério.</h2>
+        <div class="audience-grid">
+          <article class="audience-card"><h3>Você já realiza FUE</h3><p>Quer aprofundar a condução de casos com fios longos e discutir planejamento, execução e organização cirúrgica.</p></article>
+          <article class="audience-card"><h3>Você quer expandir sua atuação</h3><p>É cirurgião plástico ou dermatologista e avalia ampliar o portfólio da clínica com transplante capilar.</p></article>
+        </div>
+        <p class="audience-note">A participação é exclusiva para médicos. O aproveitamento das atividades práticas depende da experiência prévia e das condições clínicas e operacionais de cada caso; converse com a equipe para confirmar se o formato é adequado ao seu momento profissional.</p>
+      </div>
+    </section>
     <section class="section wrap" aria-labelledby="advantages-title">
-      <h2 class="section-title" id="advantages-title">Por que aprofundar-se no Long Hair FUE?</h2>
+      <h2 class="section-title" id="advantages-title">Planeje áreas extensas mantendo os fios longos</h2>
       <ul class="benefits">
-        <li><span class="check" aria-hidden="true">✓</span><div><strong>Trabalho com fios longos</strong>Compreenda as particularidades de extração e implantação sem raspar os fios.</div></li>
-        <li><span class="check" aria-hidden="true">✓</span><div><strong>Referência visual durante o procedimento</strong>Discuta como os fios longos participam da avaliação intraoperatória e do planejamento.</div></li>
-        <li><span class="check" aria-hidden="true">✓</span><div><strong>Raciocínio aplicado a casos reais</strong>Observe decisões técnicas e operacionais em contexto clínico supervisionado.</div></li>
+        <li><span class="check" aria-hidden="true">✓</span><div><strong>Planejamento de áreas extensas</strong>Discuta como organizar o procedimento quando é necessário manter os fios longos.</div></li>
+        <li><span class="check" aria-hidden="true">✓</span><div><strong>Densidade e preenchimento</strong>Entenda como a referência dos fios longos pode orientar decisões de distribuição e cobertura visual.</div></li>
+        <li><span class="check" aria-hidden="true">✓</span><div><strong>Fluxo da equipe no centro cirúrgico</strong>Avalie organização, etapas e otimização do trabalho da equipe em casos reais.</div></li>
       </ul>
+      <div class="records" aria-labelledby="records-title">
+        <h3 class="records-title" id="records-title">Registros de casos Long Hair FUE</h3>
+        <div class="carousel" data-carousel role="group" aria-roledescription="carousel" aria-label="Casos Long Hair FUE">
+          <div class="carousel__viewport" data-carousel-viewport tabindex="0" aria-label="Rolagem horizontal dos casos Long Hair FUE">
+            <div class="records__grid">
+              <figure><img src="img/antesdepois1.jpg" alt="Antes e depois de procedimento Long Hair FUE conduzido pela Dra. Patricia Veloso" width="960" height="1280" loading="lazy"></figure>
+              <figure><img src="img/antesdepois2.jpg" alt="Comparativo antes e depois de transplante capilar Long Hair FUE" width="960" height="1280" loading="lazy"></figure>
+              <figure><img src="img/antesdepois3.jpg" alt="Evidência visual de caso Long Hair FUE em paciente tratado pela Dra. Patricia Veloso" width="960" height="1280" loading="lazy"></figure>
+              <figure><img src="img/antes1.jpg" alt="Imagem pré-operatória para documentação educacional de Long Hair FUE" width="960" height="1280" loading="lazy"></figure>
+              <figure><img src="img/procedimento1.jpg" alt="Registro intraoperatório de procedimento Long Hair FUE" width="960" height="1280" loading="lazy"></figure>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
     <section class="section wrap" aria-labelledby="event-title">
       <div class="event">
@@ -95,6 +156,34 @@
       </div>
     </section>
   </main>
-  <footer><p>© 2026 Dra. Patrícia Veloso • Long Hair FUE Academy</p><p>Ciência • Técnica • Arte</p></footer>
+  <footer><p>© 2026 Dra. Patrícia Veloso • Long Hair FUE Academy</p></footer>
+  <script>
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    document.querySelectorAll("[data-carousel]").forEach((carousel) => {
+      const viewport = carousel.querySelector("[data-carousel-viewport]");
+      let timer;
+      let paused = false;
+      const canScroll = () => viewport.scrollWidth > viewport.clientWidth + 8;
+      const advance = () => {
+        if (paused || reducedMotion.matches || !canScroll()) return;
+        const first = viewport.querySelector("figure");
+        const gap = parseFloat(getComputedStyle(first.parentElement).gap) || 0;
+        const step = first.getBoundingClientRect().width + gap;
+        const end = viewport.scrollWidth - viewport.clientWidth;
+        viewport.scrollTo({ left: viewport.scrollLeft >= end - 8 ? 0 : viewport.scrollLeft + step, behavior:"smooth" });
+      };
+      const start = () => {
+        clearInterval(timer);
+        if (!reducedMotion.matches && canScroll()) timer = setInterval(advance, 4200);
+      };
+      carousel.addEventListener("mouseenter", () => { paused = true; });
+      carousel.addEventListener("mouseleave", () => { paused = false; });
+      carousel.addEventListener("focusin", () => { paused = true; });
+      carousel.addEventListener("focusout", () => { paused = false; });
+      window.addEventListener("resize", start);
+      reducedMotion.addEventListener?.("change", start);
+      start();
+    });
+  </script>
 </body>
 </html>
